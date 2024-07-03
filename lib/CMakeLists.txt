@@ -1,0 +1,2 @@
+add_subdirectory(threadGenerator)
+add_subdirectory(SharedMemory)
