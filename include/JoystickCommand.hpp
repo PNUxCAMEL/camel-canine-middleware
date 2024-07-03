@@ -9,8 +9,8 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/joystick.h>
-#include "ConsoleType.hpp"
-#include "GamepadDescription.hpp"
+#include "Setup.hpp"
+#include "CommandLists.hpp"
 #include "Gamepad.h"
 #include "SharedMemory.hpp"
 
@@ -21,11 +21,6 @@ public:
     JoystickCommand();
     void copyJoystickData();
     void mappingJoystickCommand();
-
-    double bodyLinVel_ref[3];
-    double bodyAngVel_ref[3];
-    int8_t joystickCommand;
-    int FSMState;
 
 private:
     void mappingStart();
@@ -53,18 +48,22 @@ private:
     double mJoystickLeftAxis[2]; // left-right, down-up
     double mJoystickRightAxis[2]; // left-right, down-up
     bool mbPrevSlopeInput;
-    bool mbPrevSlopeSelected;
 
-    int mIsolation;
     Gamepad* gamepad;
     SharedMemory* sharedMemory;
 
-    enum ISOLATION
+    enum FSM
     {
-        ISOLATION_STAND,
-        ISOLATION_READY
+        FSM_INITIAL,
+        FSM_EMERGENCY_STOP,
+        FSM_READY,
+        FSM_ISOLATION,
+        FSM_CONST_STAND,
+        FSM_STAND,
+        FSM_TROT_SLOW,
+        FSM_TROT_FAST,
+        FSM_OVERLAP_TROT_FAST
     };
-
 };
 
 

@@ -93,7 +93,7 @@ public:
     Eigen::Vector3d bodyBaseDesiredAngularVelocity;
     Eigen::Vector3d globalBaseDesiredAngularVelocity;
     Eigen::Vector3d bodyBaseDesiredVelocity;
-
+    Eigen::Vector3d bodyBaseVelocity;
     Eigen::Vector3d globalBaseEulerAngle;
     Eigen::Vector3d bodyBaseAngularVelocity;
     Eigen::Vector3d globalBaseAngularVelocity;
@@ -169,6 +169,10 @@ public:
 
     bool isRobotRestart;
 
+    double UDPRefBodyLinearVelocity_x;
+    double UDPRefBodyLinearVelocity_y;
+    double UDPRefBodyAngularVelocity_yaw;
+    int8_t UDPCommand;
 
 } SHM, * pSHM;
 

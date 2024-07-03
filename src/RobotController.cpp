@@ -2,10 +2,10 @@
 // Created by ys on 24. 6. 6.
 //
 #include "threadGenerator.hpp"
-#include "console/ConsoleType.hpp"
-#include "console/Gamepad.h"
-#include "console/JoystickCommand.hpp"
-#include "console/DataProcessing.hpp"
+#include "Setup.hpp"
+#include "Gamepad.h"
+#include "JoystickCommand.hpp"
+#include "DataProcessing.hpp"
 #include "SharedMemory.hpp"
 
 
@@ -36,7 +36,7 @@ int main()
 
 void packageUDPmsg(unsigned char* msg)
 {
-    uint guiButtonState = joystickCommand.joystickCommand;
+    uint guiButtonState = sharedMemory->UDPCommand;
     unsigned char gb_u = (0xFF00 & guiButtonState) >> 8;
     unsigned char gb_l = 0x00FF & guiButtonState;
     // header
@@ -44,9 +44,9 @@ void packageUDPmsg(unsigned char* msg)
     msg[1] = 0xFE;
     mempcpy(&msg[16], &gb_u, 1);
     mempcpy(&msg[17], &gb_l, 1);
-    mempcpy(&msg[19], &joystickCommand.bodyLinVel_ref[0], sizeof(double));
-    mempcpy(&msg[27], &joystickCommand.bodyLinVel_ref[1], sizeof(double));
-    mempcpy(&msg[35], &joystickCommand.bodyAngVel_ref[2], sizeof(double));
+    mempcpy(&msg[19], &sharedMemory->UDPRefBodyLinearVelocity_x, sizeof(double));
+    mempcpy(&msg[27], &sharedMemory->UDPRefBodyLinearVelocity_y, sizeof(double));
+    mempcpy(&msg[35], &sharedMemory->UDPRefBodyAngularVelocity_yaw, sizeof(double));
     // tail
     msg[43] = 0x00;
     msg[44] = 0x01;

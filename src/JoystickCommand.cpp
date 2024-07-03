@@ -1,9 +1,7 @@
-#include "console/JoystickCommand.hpp"
+#include "JoystickCommand.hpp"
 
 JoystickCommand::JoystickCommand()
-    : mbPrevSlopeSelected(false)
 {
-    joystickCommand = CMD_NO_ACT;
     gamepad = Gamepad::getInstance();
     sharedMemory = SharedMemory::getInstance();
 }
@@ -151,7 +149,7 @@ void JoystickCommand::copyJoystickData()
 
 void JoystickCommand::mappingJoystickCommand()
 {
-    joystickCommand = CMD_NO_ACT;
+    sharedMemory->UDPCommand = CMD_NO_ACT;
 //    printf("[CMD] %d\n",joystickCommand);
     mappingStart();
     mappingEmergencyStop();
@@ -166,14 +164,13 @@ void JoystickCommand::mappingJoystickCommand()
     mappingRecovery();
     mappingJoystick();
     mappingRestart();
-//    printf("[CMD] %d\n",sharedMemory->FSMState);
 }
 
 void JoystickCommand::mappingStart()
 {
     if (mJoystickFunctionButtons[1])
     {
-        joystickCommand = CMD_START;
+        sharedMemory->UDPCommand = CMD_START;
     }
 }
 
@@ -181,7 +178,7 @@ void JoystickCommand::mappingEmergencyStop()
 {
     if ((mJoystickRearButtons[2] && mJoystickRearButtons[3]))
     {
-        joystickCommand = CMD_E_STOP;
+        sharedMemory->UDPCommand = CMD_E_STOP;
     }
 }
 
@@ -189,7 +186,7 @@ void JoystickCommand::mappingStandUp()
 {
     if (mJoystickRearButtons[3] && mJoystickLeftButtons[3])
     {
-        joystickCommand = CMD_HOME_UP;
+        sharedMemory->UDPCommand = CMD_HOME_UP;
     }
 }
 
@@ -197,7 +194,7 @@ void JoystickCommand::mappingStandDown()
 {
     if ((mJoystickRearButtons[3] && mJoystickLeftButtons[0]))
     {
-        joystickCommand = CMD_HOME_DOWN;
+        sharedMemory->UDPCommand = CMD_HOME_DOWN;
     }
 }
 
@@ -210,7 +207,7 @@ void JoystickCommand::mappingConstStand()
 {
     if ((mJoystickRearButtons[1] && mJoystickLeftButtons[1]))
     {
-        joystickCommand = CMD_TROT_STOP;
+        sharedMemory->UDPCommand = CMD_TROT_STOP;
     }
 }
 
@@ -218,7 +215,7 @@ void JoystickCommand::mappingTrotSlow()
 {
     if ((mJoystickRearButtons[1] && mJoystickLeftButtons[2]))
     {
-        joystickCommand = CMD_TROT_SLOW;
+        sharedMemory->UDPCommand = CMD_TROT_SLOW;
     }
 }
 
@@ -226,7 +223,7 @@ void JoystickCommand::mappingTrotFast()
 {
     if ((mJoystickRearButtons[1] && mJoystickLeftButtons[0]))
     {
-        joystickCommand = CMD_TROT_FAST;
+        sharedMemory->UDPCommand = CMD_TROT_FAST;
 
     }
 }
@@ -235,7 +232,7 @@ void JoystickCommand::mappingTrotOverlap()
 {
     if ((mJoystickRearButtons[1] && mJoystickLeftButtons[3]))
     {
-        joystickCommand = CMD_TROT_OVERLAP;
+        sharedMemory->UDPCommand = CMD_TROT_OVERLAP;
     }
 }
 
@@ -243,7 +240,7 @@ void JoystickCommand::mappingRecovery()
 {
     if (mJoystickButton[1])
     {
-        joystickCommand = CMD_RECOVERY;
+        sharedMemory->UDPCommand = CMD_RECOVERY;
     }
 }
 
@@ -251,7 +248,7 @@ void JoystickCommand::mappingSlopeMode()
 {
     if ((mJoystickButton[0] && !mbPrevSlopeInput))
     {
-//        joystickCommand = GAMEPAD_MODE_SLOPE;
+//        sharedMemory->UDPCommand = GAMEPAD_MODE_SLOPE;
     }
 }
 
@@ -259,7 +256,7 @@ void JoystickCommand::mappingRestart()
 {
 //    if (sharedParameter->isRobotRestart)
 //    {
-//        joystickCommand = GAMEPAD_RESTART;
+//        sharedMemory->UDPCommand = GAMEPAD_RESTART;
 //    }
 }
 
@@ -269,33 +266,29 @@ void JoystickCommand::mappingJoystick()
     {
     case FSM_CONST_STAND:
     {
-        for (int idx = 0; idx < 3; idx++)
-        {
-            bodyLinVel_ref[idx] = 0;
-        }
-        bodyAngVel_ref[0] = mJoystickLeftAxis[0] * 0.65;
-        bodyAngVel_ref[1] = mJoystickLeftAxis[1] * 0.5;
-        bodyAngVel_ref[2] = -mJoystickRightAxis[0] * 0.65;
+        sharedMemory->UDPRefBodyLinearVelocity_x = 0.0;
+        sharedMemory->UDPRefBodyLinearVelocity_y = 0.0;
+        sharedMemory->UDPRefBodyAngularVelocity_yaw = 0.0;
         break;
     }
     case FSM_TROT_SLOW:
     {
-        bodyLinVel_ref[0] = mJoystickLeftAxis[1] * 0.6;
-        bodyLinVel_ref[1] = -mJoystickLeftAxis[0] * 0.4;
-        bodyAngVel_ref[2] = -mJoystickRightAxis[0] * 0.65;
+        sharedMemory->UDPRefBodyLinearVelocity_x = mJoystickLeftAxis[1] * 0.6;
+        sharedMemory->UDPRefBodyLinearVelocity_y = -mJoystickLeftAxis[0] * 0.4;
+        sharedMemory->UDPRefBodyAngularVelocity_yaw = -mJoystickRightAxis[0] * 0.65;
         break;
     }
     case FSM_TROT_FAST:
     {
-        bodyLinVel_ref[0] = mJoystickLeftAxis[1] * 1.0; // 1 m/s
-        bodyLinVel_ref[1] = -mJoystickLeftAxis[0] * 0.5;
-        bodyAngVel_ref[2] = -mJoystickRightAxis[0] * 0.65;
+        sharedMemory->UDPRefBodyLinearVelocity_x = mJoystickLeftAxis[1] * 1.0; // 1 m/s
+        sharedMemory->UDPRefBodyLinearVelocity_y = -mJoystickLeftAxis[0] * 0.5;
+        sharedMemory->UDPRefBodyAngularVelocity_yaw = -mJoystickRightAxis[0] * 0.65;
         break;
     }
     case FSM_OVERLAP_TROT_FAST:
     {
-        bodyLinVel_ref[0] = mJoystickLeftAxis[1] * 1.0;
-        bodyAngVel_ref[2] = -mJoystickRightAxis[0] * 0.65;
+        sharedMemory->UDPRefBodyLinearVelocity_x = mJoystickLeftAxis[1] * 1.0;
+        sharedMemory->UDPRefBodyAngularVelocity_yaw = -mJoystickRightAxis[0] * 0.65;
         break;
     }
     default:

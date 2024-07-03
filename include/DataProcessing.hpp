@@ -214,6 +214,7 @@ void unpackingTCPmsg(const std::vector<char>& dataBuffer) {
     unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseDesiredEulerAngle);
     unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseDesiredAngularVelocity);
     unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseDesiredVelocity);
+    unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseVelocity);
 
     unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseEulerAngle);
     unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseAngularVelocity);

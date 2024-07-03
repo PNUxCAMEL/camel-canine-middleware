@@ -12,7 +12,7 @@ add_executable(${PROJECT_NAME}
         src/JoystickCommand.cpp
         src/Gamepad.cpp
         src/RobotController.cpp
-        include/console/DataProcessing.hpp
+        include/DataProcessing.hpp
 )
 target_include_directories(${PROJECT_NAME}
         PUBLIC

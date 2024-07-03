@@ -141,6 +141,7 @@ SharedMemory::SharedMemory()
     globalBaseDesiredEulerAngle.setZero();
     bodyBaseDesiredAngularVelocity.setZero();
     bodyBaseDesiredVelocity.setZero();
+    bodyBaseVelocity.setZero();
     globalBaseEulerAngle.setZero();
     bodyBaseAngularVelocity.setZero();
     globalBaseAcceleration.setZero();
@@ -189,4 +190,9 @@ SharedMemory::SharedMemory()
     wbcParamChangedFlag = false;
 
     isRobotRestart = false;
+
+    UDPRefBodyLinearVelocity_x = 0.0;
+    UDPRefBodyLinearVelocity_y = 0.0;
+    UDPRefBodyAngularVelocity_yaw = 0.0;
+    UDPCommand = 0;
 }

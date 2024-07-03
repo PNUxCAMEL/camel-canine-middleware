@@ -2,7 +2,7 @@
 // Created by sangjun on 23. 4. 28.
 //
 
-#include "console/Gamepad.h"
+#include "Gamepad.h"
 
 #define JOY_DEV "/dev/input/js0"
 

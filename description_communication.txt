@@ -1,0 +1,10 @@
+1. UDP (to canine)
+ - UDPCommand : set the states of the robot.
+ - UDPRefBodyAngularVelocity_x : reference x-axis velocity in body frame. [m/s]
+ - UDPRefBodyAngularVelocity_y : reference y-axis velocity in body frame. [m/s]
+ - UDPRefBodyAngularVelocity_yaw : reference yaw velocity. [rad/s]
+
+ 2. TCP (from canine)
+ - bodyBaseVelocity : x,y,z axis velocities in body frame. [m/s]
+ - globalBaseEulerAngle : roll,pitch,yaw [rad]
+ - bodyBaseAngularVelocity : angular velocity in body frame.  [rad/s]
