@@ -7,25 +7,19 @@
 #include "threadGenerator.hpp"
 #include "TCPCommunication.hpp"
 #include "UDPCommunication.hpp"
-//#include "Gamepad.h"
-//#include "JoystickCommand.hpp"
 
 SharedMemory* sharedMemory = SharedMemory::getInstance();
-//Gamepad* gamepad = Gamepad::getInstance();
 HWD* HWData = HWD::getInstance();
 
-//JoystickCommand joystickCommand;
 TCPCommunication tcpCommunication;
 UDPCommunication udpCommunication;
 
-void* readJoystick(void* arg);
 void* sendRobotCommand_udp(void* arg);
 void* receiveRobotStatus_tcp(void* arg);
 void* highController(void* arg);
 
 int main()
 {
-    pthread_t joystickThread;
     pthread_t UDPthread;
     pthread_t TCPthread;
     pthread_t HighControlThread;
@@ -33,23 +27,12 @@ int main()
     generateRtThread(HighControlThread, highController, "RT_Controller", 4, 99, NULL);
     generateNrtThread(UDPthread, sendRobotCommand_udp, "UDP_send", 5, NULL);
     generateNrtThread(TCPthread, receiveRobotStatus_tcp, "TCP_receive", 6, NULL);
-//    generateNrtThread(joystickThread, readJoystick, "NRTJoyThread", 4, NULL);
 
     while (true)
     {
         sleep(10000);
     }
 }
-
-//void* readJoystick(void* arg)
-//{
-//    std::cout << "[MAIN] Generated Joystick Thread : " <<std::endl;
-//    while (true)
-//    {
-//        gamepad->Read();
-//        joystickCommand.copyJoystickData();
-//    }
-//}
 
 void* sendRobotCommand_udp(void* arg)
 {
