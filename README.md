@@ -1,4 +1,6 @@
+Dependencies : Eigen3
 
+How to use
 1. Match IP with the canine in include/Setup.hpp
 2. Write your codes in the ~~thread in main.cpp
 - List of commands to change the FSM of the controller is in include/CommandLists.hpp
