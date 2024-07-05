@@ -11,6 +11,7 @@
 #include <linux/joystick.h>
 #include "Setup.hpp"
 #include "CommandLists.hpp"
+#include "EnumClasses.hpp"
 #include "Gamepad.h"
 #include "SharedMemory.hpp"
 
@@ -51,19 +52,7 @@ private:
 
     Gamepad* gamepad;
     SharedMemory* sharedMemory;
-
-    enum FSM
-    {
-        FSM_INITIAL,
-        FSM_EMERGENCY_STOP,
-        FSM_READY,
-        FSM_ISOLATION,
-        FSM_CONST_STAND,
-        FSM_STAND,
-        FSM_TROT_SLOW,
-        FSM_TROT_FAST,
-        FSM_OVERLAP_TROT_FAST
-    };
+    CommandLists commandLists;
 };
 
 

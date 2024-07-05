@@ -13,6 +13,7 @@ HWD* HWData = HWD::getInstance();
 
 TCPCommunication tcpCommunication;
 UDPCommunication udpCommunication;
+CommandLists commandLists;
 
 void* sendRobotCommand_udp(void* arg);
 void* receiveRobotStatus_tcp(void* arg);
@@ -24,9 +25,9 @@ int main()
     pthread_t TCPthread;
     pthread_t HighControlThread;
 
-    generateRtThread(HighControlThread, highController, "RT_Controller", 4, 99, NULL);
-    generateNrtThread(UDPthread, sendRobotCommand_udp, "UDP_send", 5, NULL);
-    generateNrtThread(TCPthread, receiveRobotStatus_tcp, "TCP_receive", 6, NULL);
+    generateRtThread(HighControlThread, highController, "RT_Controller", 5, 99, NULL);
+    generateNrtThread(UDPthread, sendRobotCommand_udp, "UDP_send", 6, NULL);
+    generateNrtThread(TCPthread, receiveRobotStatus_tcp, "TCP_receive", 7, NULL);
 
     while (true)
     {
@@ -67,12 +68,12 @@ void* highController(void* arg)
 
 
     sleep(2);
-    sharedMemory->UDPCommand = CMD_START;
-    sleep(2);
-    sharedMemory->UDPCommand = CMD_HOME_UP;
-    sleep(5);
-    sharedMemory->UDPCommand = CMD_TROT_SLOW;
-    sleep(2);
+    commandLists.Start();
+    sleep(4);
+    commandLists.HomeUp();
+    sleep(4);
+    commandLists.TrotSlow();
+    sleep(1);
 
     clock_gettime(CLOCK_REALTIME, &time1);
     while (true)
@@ -82,9 +83,11 @@ void* highController(void* arg)
 
         // Functions -- start
 
-        sharedMemory->UDPRefBodyLinearVelocity_x = sin(sharedMemory->localTime * 0.5 * 3.141592);
-        std::cout << "==== local time: " << sharedMemory->localTime << std::endl;
-        std::cout << "ref x: " << sharedMemory->UDPRefBodyLinearVelocity_x << std::endl;
+        double refBodyVelocity[3];
+        refBodyVelocity[0] = sin(sharedMemory->localTime * 0.5 * 3.141592); // reference x-axis velocity in body frame. [m/s]
+        refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
+        refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
+        commandLists.SetBodyVelocity(refBodyVelocity);
 
         // Functions -- end
 

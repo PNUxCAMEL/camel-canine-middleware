@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
         src/JoystickCommand.cpp
         src/TCPCommunication.cpp
         src/UDPCommunication.cpp
+        src/CommandLists.cpp
 )
 target_include_directories(${PROJECT_NAME}
         PUBLIC
