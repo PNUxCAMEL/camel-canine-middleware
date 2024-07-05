@@ -20,9 +20,9 @@ Follow these steps to get started:
 
 3. **Utilize Command Lists**
    - Check `include/CommandLists.hpp` for a list of commands to modify the Finite State Machine (FSM) of the controller
-   - Refer to `communication_description.txt` for detailed information on the robot's states and command lists
-     - **UDP Command Lists**: Commands from middleware to controller
-     - **TCP Command Lists**: Commands from canine to middleware
+   - Refer to `description_communication.txt` for detailed information on the robot's states and command lists
+     - **UDP Lists**: States from middleware to controller
+     - **TCP Lists**: States from canine to middleware
 
 ## 📂 File Structure
 
