@@ -13,8 +13,8 @@
 #define ONEXPLAYER /// same as XBOX Controller
 //#define DUALSENSE
 
-const std::string INIT_IP = "127.0.0.1"; // For Local //TODO: Match it with the canine
-//const std::string INIT_IP = "10.72.63.11"; // For Canine
+//const std::string INIT_IP = "127.0.0.1"; // For Local //TODO: Match it with the canine
+const std::string INIT_IP = "192.168.0.3"; // For Canine
 
 
 #endif //CAMEL_SETUP_HPP
