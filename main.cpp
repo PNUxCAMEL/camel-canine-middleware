@@ -61,6 +61,7 @@ void* receiveRobotStatus_tcp(void* arg)
 void* highController(void* arg)
 {
     double dT = 0.01; // 10Hz Real-time thread
+    double localTime = 0.0;
     const long threadPeriod = long(dT * 1e6);
     struct timespec time1;
     struct timespec time2;
@@ -78,17 +79,22 @@ void* highController(void* arg)
     clock_gettime(CLOCK_REALTIME, &time1);
     while (true)
     {
+        localTime += dT;
         clock_gettime(CLOCK_REALTIME, &time2);
         timeAddus(&time1, threadPeriod);
 
         // Functions -- start
 
         double refBodyVelocity[3];
-        refBodyVelocity[0] = sin(sharedMemory->localTime * 0.5 * 3.141592); // reference x-axis velocity in body frame. [m/s]
+        refBodyVelocity[0] = 0.1; // reference x-axis velocity in body frame. [m/s]
         refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
         refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
         commandLists.SetBodyVelocity(refBodyVelocity);
 
+        if(localTime > 5.0)
+        {
+            break;
+        }
         // Functions -- end
 
         clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &time1, NULL);
@@ -97,4 +103,10 @@ void* highController(void* arg)
             std::cout << "[MAIN] Deadline Miss, High Controller Real-Time Thread : " << timeDifferentMs(&time1, &time2) * 0.001 << " ms" << std::endl;
         }
     }
+    commandLists.TrotStop();
+    sleep(4);
+    commandLists.HomeDown();
+    sleep(4);
+    commandLists.EmergencyStop();
+    sleep(2);
 }
