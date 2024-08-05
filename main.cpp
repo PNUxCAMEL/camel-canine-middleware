@@ -91,8 +91,9 @@ void* highController(void* arg)
         refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
         commandLists.SetBodyVelocity(refBodyVelocity);
 
+        std::cout << "[shared memory] local time in controller: " << sharedMemory->localTime << " sec" << std::endl;
         std::cout << "[shared memory] base velocity in body frame (x,y): " << sharedMemory->bodyBaseVelocity[0] << ", " << sharedMemory->bodyBaseVelocity[1] << std::endl;
-        std::cout << "[shared memory] base yaw rate (yaw_dot): " << sharedMemory->bodyBaseAngularVelocity[2] << std::endl;
+        std::cout << "[shared memory] base yaw rate in body frame (yaw_dot): " << sharedMemory->bodyBaseAngularVelocity[2] << std::endl;
         std::cout << "[shared memory] base Euler angle (roll, pitch, yaw): " << sharedMemory->globalBaseEulerAngle[0] << ", " << sharedMemory->globalBaseEulerAngle[1] << ", " << sharedMemory->globalBaseEulerAngle[2] << std::endl;
 
         if(localTime > 5.0)
