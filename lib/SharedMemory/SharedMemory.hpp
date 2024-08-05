@@ -32,68 +32,73 @@ public:
 private:
     SharedMemory();
 public:
-    // For UI
+    /// UDP: Command
+    int8_t UDPCommand;
 
-    UI_COMMAND command;
-    int gaitTable[MPC_HORIZON*4];
+    /// UDP: Command velocity
+    double UDPRefBodyLinearVelocity_x;
+    double UDPRefBodyLinearVelocity_y;
+    double UDPRefBodyAngularVelocity_yaw;
 
-    bool isNan;
-    bool isRamp;
-    bool newCommand;
-
-    bool motorStatus;
-
-    int FSMState;
-    int LowControlState;
-    int HighControlState;
-
-    double localTime;
-
-    int motorErrorStatus[MOTOR_NUM];
-    int motorTemp[MOTOR_NUM];
-    double motorVoltage[MOTOR_NUM];
+    /// Motor states
     double motorPosition[MOTOR_NUM];
     double motorVelocity[MOTOR_NUM];
     double motorTorque[MOTOR_NUM];
+    double motorVoltage[MOTOR_NUM];
+    int motorTemp[MOTOR_NUM];
+    int motorErrorStatus[MOTOR_NUM];
     double motorDesiredPosition[MOTOR_NUM];
     double motorDesiredVelocity[MOTOR_NUM];
     double motorDesiredTorque[MOTOR_NUM];
 
+    /// State estimator: global frame
     Eigen::Vector3d globalBasePosition;
     Eigen::Vector3d globalBaseVelocity;
+
+    /// State estimator: body frame
+    Eigen::Vector3d bodyBaseVelocity;
+    Eigen::Vector3d bodyBase2FootPosition[4];
+    Eigen::Vector3d bodyBase2FootVelocity[4];
+
+    /// State estimator: contact estimator
+    bool contactState[4];
+
+    /// IMU
     Eigen::Vector4d globalBaseQuaternion;
+    Eigen::Vector3d globalBaseEulerAngle;
+    Eigen::Vector3d globalBaseAngularVelocity;
+    Eigen::Vector3d bodyBaseAngularVelocity;
+
+    //Control params
     Eigen::Vector3d globalBaseDesiredPosition;
     Eigen::Vector3d globalBaseDesiredVelocity;
     Eigen::Vector4d globalBaseDesiredQuaternion;
     Eigen::Vector3d globalBaseDesiredEulerAngle;
-    Eigen::Vector3d bodyBaseDesiredAngularVelocity;
     Eigen::Vector3d globalBaseDesiredAngularVelocity;
+    Eigen::Vector3d bodyBaseDesiredAngularVelocity;
     Eigen::Vector3d bodyBaseDesiredVelocity;
-    Eigen::Vector3d bodyBaseVelocity;
-    Eigen::Vector3d globalBaseEulerAngle;
-    Eigen::Vector3d bodyBaseAngularVelocity;
-    Eigen::Vector3d globalBaseAngularVelocity;
-    Eigen::Vector3d globalBaseAcceleration;
-
+    Eigen::Vector3d globalBaseAcceleration; // TODO: acc. states will be deleted.
     Eigen::Vector3d pdTorque[4];
     Eigen::Vector3d mpcTorque[4];
     Eigen::Vector3d globalFootPosition[4];
-    Eigen::Vector3d bodyBase2FootPosition[4];
-    Eigen::Vector3d bodyBase2FootVelocity[4];
     Eigen::Vector3d bodyBase2FootDesiredPosition[4];
     Eigen::Vector3d bodyBase2FootDesiredVelocity[4];
-
-    bool contactState[4];
     Eigen::Vector3d solvedGRF[4];
 
+    /// For debug
+    UI_COMMAND command;
+    bool isNan;
+    bool isRamp;
+    bool newCommand;
+    bool motorStatus;
+    int FSMState;
+    int LowControlState;
+    int HighControlState;
+    int gaitTable[MPC_HORIZON*4];
     double testBasePos[3];
     double testBaseVel[3];
     double threadElapsedTime[11];
-
-    double UDPRefBodyLinearVelocity_x;
-    double UDPRefBodyLinearVelocity_y;
-    double UDPRefBodyAngularVelocity_yaw;
-    int8_t UDPCommand;
+    double localTime;
 
 } SHM, * pSHM;
 
