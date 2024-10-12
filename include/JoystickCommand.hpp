@@ -28,14 +28,13 @@ private:
     void mappingEmergencyStop();
     void mappingStandUp();
     void mappingStandDown();
-    void mappingMotorOff();
     void mappingConstStand();
     void mappingTrotSlow();
-    void mappingTrotFast();
-    void mappingTrotOverlap();
-    void mappingRecovery();
-    void mappingSlopeMode();
     void mappingRestart();
+    void mappingFoot2WheelChange();
+    void mappingWheel2FootChange();
+    void mappingWheelMove();
+    void mappingWheelStand();
     void mappingJoystick();
 
 private:

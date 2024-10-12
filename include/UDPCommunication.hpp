@@ -5,8 +5,10 @@
 #ifndef CANINE_MIDDLEWARE_UDPCOMMUNICATION_HPP
 #define CANINE_MIDDLEWARE_UDPCOMMUNICATION_HPP
 
-
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include "Setup.hpp"
 #include "SharedMemory.hpp"
 
@@ -14,18 +16,17 @@ class UDPCommunication
 {
 public:
     UDPCommunication();
-    void Initialize();
-    void Send();
-
+    void SendData();
 private:
-    void packageUDPmsg(unsigned char* msg);
-
-private:
+    SharedMemory* sharedMemory;
     int clientSocket;
     struct sockaddr_in serverAddr;
     socklen_t addr_size;
 
-    unsigned char msg[45];
+    char msg[53];
+    bool open();
+    bool UDP_Open;
+    void packageUDPmsg(char* msg);
 };
 
 

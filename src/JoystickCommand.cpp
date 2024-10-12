@@ -149,20 +149,15 @@ void JoystickCommand::copyJoystickData()
 
 void JoystickCommand::mappingJoystickCommand()
 {
+    /// TODO: need to edit
     mappingStart();
     mappingEmergencyStop();
     mappingStandUp();
     mappingStandDown();
-    mappingMotorOff();
     mappingConstStand();
     mappingTrotSlow();
-    mappingTrotFast();
-    mappingTrotOverlap();
-    mappingSlopeMode();
-    mappingRecovery();
     mappingJoystick();
     mappingRestart();
-//    printf("[CMD] : %d\n",sharedMemory->UDPCommand);
 }
 
 void JoystickCommand::mappingStart()
@@ -185,7 +180,7 @@ void JoystickCommand::mappingStandUp()
 {
     if (mJoystickRearButtons[3] && mJoystickLeftButtons[3])
     {
-        commandLists.HomeUp();
+        commandLists.StandUp();
     }
 }
 
@@ -193,13 +188,8 @@ void JoystickCommand::mappingStandDown()
 {
     if ((mJoystickRearButtons[3] && mJoystickLeftButtons[0]))
     {
-        commandLists.HomeDown();
+        commandLists.SitDown();
     }
-}
-
-void JoystickCommand::mappingMotorOff()
-{
-
 }
 
 void JoystickCommand::mappingConstStand()
@@ -218,44 +208,8 @@ void JoystickCommand::mappingTrotSlow()
     }
 }
 
-void JoystickCommand::mappingTrotFast()
-{
-    if ((mJoystickRearButtons[1] && mJoystickLeftButtons[0]))
-    {
-        commandLists.TrotFast();
-    }
-}
-
-void JoystickCommand::mappingTrotOverlap()
-{
-    if ((mJoystickRearButtons[1] && mJoystickLeftButtons[3]))
-    {
-        commandLists.TrotFast();
-    }
-}
-
-void JoystickCommand::mappingRecovery()
-{
-    if (mJoystickButton[1])
-    {
-        commandLists.Recovery();
-    }
-}
-
-void JoystickCommand::mappingSlopeMode()
-{
-    if ((mJoystickButton[0] && !mbPrevSlopeInput))
-    {
-//        sharedMemory->UDPCommand = GAMEPAD_MODE_SLOPE;
-    }
-}
-
 void JoystickCommand::mappingRestart()
 {
-//    if (sharedParameter->isRobotRestart)
-//    {
-//        sharedMemory->UDPCommand = GAMEPAD_RESTART;
-//    }
 }
 
 void JoystickCommand::mappingJoystick()
@@ -264,12 +218,12 @@ void JoystickCommand::mappingJoystick()
 
     switch (sharedMemory->FSMState)
     {
-    case FSM_CONST_STAND:
+    case FSM_STAND:
     {
         commandVelocity[0] = 0.0;
         commandVelocity[1] = 0.0;
         commandVelocity[2] = 0.0;
-        commandLists.SetBodyVelocity(commandVelocity);
+        commandLists.SetBodyVelocity(commandVelocity[0], commandVelocity[1], commandVelocity[2]);
         break;
     }
     case FSM_TROT_SLOW:
@@ -277,7 +231,7 @@ void JoystickCommand::mappingJoystick()
         commandVelocity[0] = mJoystickLeftAxis[1] * 0.6;
         commandVelocity[1] = -mJoystickLeftAxis[0] * 0.4;
         commandVelocity[2] = -mJoystickRightAxis[0] * 0.65;
-        commandLists.SetBodyVelocity(commandVelocity);
+        commandLists.SetBodyVelocity(commandVelocity[0], commandVelocity[1], commandVelocity[2]);
         break;
     }
     case FSM_TROT_FAST:
@@ -285,7 +239,7 @@ void JoystickCommand::mappingJoystick()
         commandVelocity[0] = mJoystickLeftAxis[1] * 1.0; // 1 m/s
         commandVelocity[1] = -mJoystickLeftAxis[0] * 0.5;
         commandVelocity[2] = -mJoystickRightAxis[0] * 0.65;
-        commandLists.SetBodyVelocity(commandVelocity);
+        commandLists.SetBodyVelocity(commandVelocity[0], commandVelocity[1], commandVelocity[2]);
         break;
     }
     case FSM_OVERLAP_TROT_FAST:
@@ -293,7 +247,7 @@ void JoystickCommand::mappingJoystick()
         commandVelocity[0] = mJoystickLeftAxis[1] * 1.0; // 1 m/s
         commandVelocity[1] = -mJoystickLeftAxis[0] * 0.5;
         commandVelocity[2] = -mJoystickRightAxis[0] * 0.65;
-        commandLists.SetBodyVelocity(commandVelocity);
+        commandLists.SetBodyVelocity(commandVelocity[0], commandVelocity[1], commandVelocity[2]);
         break;
     }
     default:

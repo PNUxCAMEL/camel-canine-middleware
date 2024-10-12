@@ -34,6 +34,7 @@ typedef struct _SENSOR_INFO_
     MOTOR_INFO motor[MOTOR_NUM];
     IMU_INFO imu;
 } SENSOR_INFO;
+
 typedef struct _GAMEPAD_
 {
     AXIS joystick;
@@ -46,14 +47,18 @@ typedef struct _GAMEPAD_
     uint8_t state;
 } GAMEPAD, * pGAMEPAD;
 
-typedef struct _UI_COMMAND_
+typedef struct _UDP_STRUCT_
+{
+    Eigen::Vector3d userLinVel;
+    Eigen::Vector3d userAngVel;
+    int8_t joyCommand;
+} UDP_STRUCT, * pUDP_STRUCT;
+
+typedef struct _ROBOT_COMMAND_
 {
     int userCommand;
     int gaitCommand;
-    char userParamChar[MAX_COMMAND_DATA];
-    int userParamInt[MAX_COMMAND_DATA];
-    double userParamDouble[MAX_COMMAND_DATA];
-} UI_COMMAND, * pUI_COMMAND;
+} ROBOT_COMMAND, * pROBOT_COMMAND;
 
 typedef struct _CUSTOM_DATA_
 {

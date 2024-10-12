@@ -4,175 +4,126 @@
 
 #include "TCPCommunication.hpp"
 
-TCPCommunication::TCPCommunication()
+TCPCommunication::TCPCommunication(boost::asio::io_context& io_context, short port)
+    : socket_(io_context), acceptor_(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)), data_(1024)  // 초기 버퍼 크기
 {
-
+    sharedMemory = SharedMemory::getInstance();
+    startAccept();
+    last_receive_time_ = std::chrono::steady_clock::now(); // 초기 시간 설정
 }
 
-int TCPCommunication::Initialize()
+void TCPCommunication::startAccept()
 {
-    // 서버 소켓 생성
-    serverSocket = socket(PF_INET, SOCK_STREAM, 0);
-    if (serverSocket == -1)
-    {
-        std::cerr << "Cannot create socket" << std::endl;
-        return -1;
-    }
-
-    int opt = 1;
-    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
-        std::cerr << "setsockopt(SO_REUSEADDR) failed" << std::endl;
-        close(serverSocket);
-        return -1;
-    }
-
-    // 서버 주소 구조체 설정
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(60001);
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    memset(serverAddr.sin_zero, '\0', sizeof(serverAddr.sin_zero));
-
-    // 소켓에 주소 바인드
-    if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == -1)
-    {
-        std::cerr << "Bind failed" << std::endl;
-        close(serverSocket);
-        return -1;
-    }
-
-    // 연결 대기
-    if (listen(serverSocket, 50) == -1)
-    {
-        std::cerr << "Listen failed" << std::endl;
-        close(serverSocket);
-        return -1;
-    }
-
-    std::cout << "Server listening on port 60001" << std::endl;
-    return 1;
+    acceptor_.async_accept(socket_,
+        boost::bind(&TCPCommunication::handleAccept, this, boost::asio::placeholders::error));
 }
 
-void TCPCommunication::Read()
+void TCPCommunication::handleAccept(const boost::system::error_code& error)
 {
-        addr_size = sizeof serverStorage;
-        clientSocket = accept(serverSocket, (struct sockaddr*)&serverStorage, &addr_size);
+    if (!error)
+    {
+        doReadHeader();
+    }
+    else
+    {
+        std::cerr << "[TCP] Accept error: " << error.message() << std::endl;
+        startAccept();  // 다음 클라이언트 연결을 대기
+    }
+}
 
-        if (clientSocket == -1)
+void TCPCommunication::doReadHeader()
+{
+    auto self(shared_from_this());
+    boost::asio::async_read(socket_, boost::asio::buffer(data_, sizeof(int64_t)),
+        [this, self](boost::system::error_code ec, std::size_t length)
         {
-            std::cerr << "Accept failed" << std::endl;
-            return;
-        }
-
-
-        // 클라이언트로부터 데이터 길이를 먼저 수신
-        int64_t expectedBytesNetworkOrder = 0;
-        int bytesRead = recv(clientSocket, &expectedBytesNetworkOrder, sizeof(expectedBytesNetworkOrder), 0);
-        if (bytesRead != sizeof(expectedBytesNetworkOrder))
-        {
-            std::cerr << "Error reading data size. Bytes read: " << bytesRead << std::endl;
-            close(clientSocket);
-            return;
-        }
-
-        int64_t expectedBytes64 = ntohll(expectedBytesNetworkOrder);  // 네트워크 바이트 오더를 호스트 바이트 오더로 변환
-        if (expectedBytes64 > INT_MAX)
-        {
-            std::cerr << "Data size too large: " << expectedBytes64 << std::endl;
-            close(clientSocket);
-            return;
-        }
-        int expectedBytes = static_cast<int>(expectedBytes64);
-
-        if (expectedBytes <= 0)
-        {
-            std::cerr << "Invalid data size: " << expectedBytes << std::endl;
-            close(clientSocket);
-            return;
-        }
-
-        // expectedBytes만큼 데이터를 수신
-        std::vector<char> dataBuffer(expectedBytes);
-        int totalBytesRead = 0;
-
-        while (totalBytesRead < expectedBytes)
-        {
-            bytesRead = recv(clientSocket, dataBuffer.data() + totalBytesRead, expectedBytes - totalBytesRead, 0);
-            if (bytesRead <= 0)
+            if (!ec && length == sizeof(int64_t))
             {
-                std::cerr << "Failed to receive full data. Bytes read: " << bytesRead << std::endl;
-                close(clientSocket);
-                continue;
+                int64_t dataSize = 0;
+                std::memcpy(&dataSize, data_.data(), sizeof(int64_t));
+                dataSize = ntohll(dataSize);  // 필요한 경우 바이트 오더 변환
+
+                if (dataSize > 0 && dataSize <= 65536)
+                {  // 최대 데이터 크기 설정
+                    data_.resize(dataSize);
+                    doReadBody(dataSize);
+                }
+                else
+                {
+                    std::cerr << "[TCP] Invalid data size received: " << dataSize << std::endl;
+                    socket_.close();
+                    startAccept();
+                }
             }
-            totalBytesRead += bytesRead;
-        }
-
-        if (totalBytesRead == expectedBytes)
-        {
-            unpackingTCPmsg(dataBuffer);
-        }
-
-        close(clientSocket);
+            else
+            {
+                if (ec == boost::asio::error::eof)
+                {
+                    std::cerr << "[TCP] Connection closed by client" << std::endl;
+                    sharedMemory->isTCPConnected = false;
+                }
+                else
+                {
+                    std::cerr << "[TCP] Error reading data size: " << ec.message() << std::endl;
+                }
+                socket_.close();
+                startAccept();
+            }
+        });
 }
 
-void TCPCommunication::CloseServer()
+void TCPCommunication::doReadBody(std::size_t dataSize)
 {
-    close(serverSocket);
+    auto self(shared_from_this());
+    boost::asio::async_read(socket_, boost::asio::buffer(data_),
+        [this, self, dataSize](boost::system::error_code ec, std::size_t length)
+        {
+            if (!ec && length == dataSize)
+            {
+                try
+                {
+                    std::vector<char> dataBuffer(data_.begin(), data_.begin() + dataSize);
+                    unpackingTCPmsg(dataBuffer);
+                    sharedMemory->isTCPConnected = true;
+                    logReceiveTime();  // 수신 시간 기록
+                    doReadHeader();  // 다시 헤더를 읽음
+                }
+                catch (const std::exception& e)
+                {
+                    std::cerr << "[TCP] Exception in unpackingTCPmsg: " << e.what() << std::endl;
+                    socket_.close();
+                    startAccept();
+                }
+            }
+            else
+            {
+                if (ec == boost::asio::error::eof)
+                {
+                    std::cerr << "[TCP] Connection closed by client" << std::endl;
+                    sharedMemory->isTCPConnected = false;
+                }
+                else
+                {
+                    std::cerr << "[TCP] Error reading data: " << ec.message() << std::endl;
+                }
+                socket_.close();
+                startAccept();  // 새로운 클라이언트 연결 대기
+            }
+        });
 }
 
-uint64_t TCPCommunication::htonll(uint64_t value) {
-    if (__BYTE_ORDER == __LITTLE_ENDIAN) {
-        return ((uint64_t)htonl(value & 0xFFFFFFFF) << 32) | htonl(value >> 32);
-    } else {
-        return value;
-    }
-}
+void TCPCommunication::logReceiveTime()
+{
+    auto now = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_receive_time_);
 
-uint64_t TCPCommunication::ntohll(uint64_t value) {
-    if (__BYTE_ORDER == __LITTLE_ENDIAN) {
-        return ((uint64_t)ntohl(value & 0xFFFFFFFF) << 32) | ntohl(value >> 32);
-    } else {
-        return value;
-    }
-}
-
-// Converts a double to network byte order
-uint64_t TCPCommunication::htond(double value) {
-    uint64_t temp;
-    memcpy(&temp, &value, sizeof(temp));
-    temp = htonll(temp);
-    return temp;
-}
-
-// Converts a network byte order double to host byte order
-double TCPCommunication::ntohd(uint64_t value) {
-    value = ntohll(value);
-    double temp;
-    memcpy(&temp, &value, sizeof(temp));
-    return temp;
-}
-
-void TCPCommunication::unpackingEigenVector3d(const char*& dataPtr, Eigen::Vector3d& vec) {
-    for (int i = 0; i < 3; ++i) {
-        uint64_t networkOrder;
-        memcpy(&networkOrder, dataPtr, sizeof(networkOrder));
-        vec[i] = ntohd(networkOrder);
-        dataPtr += sizeof(networkOrder);
-    }
-}
-
-void TCPCommunication::unpackingEigenVector4d(const char*& dataPtr, Eigen::Vector4d& vec) {
-    for (int i = 0; i < 4; ++i) {
-        uint64_t networkOrder;
-        memcpy(&networkOrder, dataPtr, sizeof(networkOrder));
-        vec[i] = ntohd(networkOrder);
-        dataPtr += sizeof(networkOrder);
-    }
+    last_receive_time_ = now;
+    sharedMemory->TCP_Duration = duration.count();
 }
 
 void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
 {
     const char* dataPtr = dataBuffer.data();
-    SharedMemory* sharedMemory = SharedMemory::getInstance();
 
     // Unpack sharedMemory->userCommand
     int userCommandNetworkOrder;
@@ -187,42 +138,9 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
     sharedMemory->command.gaitCommand = ntohl(gaitCommandNetworkOrder);
     dataPtr += sizeof(gaitCommandNetworkOrder);
 
-    // Unpack sharedMemory->userParamInt
-    for (int i = 0; i < MAX_COMMAND_DATA; ++i)
-    {
-        int userParamIntNetworkOrder;
-        memcpy(&userParamIntNetworkOrder, dataPtr, sizeof(userParamIntNetworkOrder));
-        sharedMemory->command.userParamInt[i] = ntohl(userParamIntNetworkOrder);
-        dataPtr += sizeof(userParamIntNetworkOrder);
-    }
-
-    // Unpack sharedMemory->userParamDouble
-    for (int i = 0; i < MAX_COMMAND_DATA; ++i)
-    {
-        uint64_t userParamDoubleNetworkOrder;
-        memcpy(&userParamDoubleNetworkOrder, dataPtr, sizeof(userParamDoubleNetworkOrder));
-        sharedMemory->command.userParamDouble[i] = ntohd(userParamDoubleNetworkOrder);
-        dataPtr += sizeof(userParamDoubleNetworkOrder);
-    }
-
     // Unpack sharedMemory->gaitTable
-    for (int i = 0; i < MPC_HORIZON * 4; ++i)
-    {
-        int gaitTableNetworkOrder;
-        memcpy(&gaitTableNetworkOrder, dataPtr, sizeof(gaitTableNetworkOrder));
-        sharedMemory->gaitTable[i] = ntohl(gaitTableNetworkOrder);
-        dataPtr += sizeof(gaitTableNetworkOrder);
-    }
-
-    // Unpack remaining boolean and integer fields in sharedMemory
-    memcpy(&sharedMemory->isNan, dataPtr, sizeof(sharedMemory->isNan));
-    dataPtr += sizeof(sharedMemory->isNan);
-
-    memcpy(&sharedMemory->isRamp, dataPtr, sizeof(sharedMemory->isRamp));
-    dataPtr += sizeof(sharedMemory->isRamp);
-
-    memcpy(&sharedMemory->newCommand, dataPtr, sizeof(sharedMemory->newCommand));
-    dataPtr += sizeof(sharedMemory->newCommand);
+    std::memcpy(sharedMemory->gaitTable,dataPtr, MPC_HORIZON*4*sizeof(int));
+    dataPtr += MPC_HORIZON*4*sizeof(int);
 
     memcpy(&sharedMemory->motorStatus, dataPtr, sizeof(sharedMemory->motorStatus));
     dataPtr += sizeof(sharedMemory->motorStatus);
@@ -230,14 +148,6 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
     int stateNetworkOrder;
     memcpy(&stateNetworkOrder, dataPtr, sizeof(stateNetworkOrder));
     sharedMemory->FSMState = ntohl(stateNetworkOrder);
-    dataPtr += sizeof(stateNetworkOrder);
-
-    memcpy(&stateNetworkOrder, dataPtr, sizeof(stateNetworkOrder));
-    sharedMemory->LowControlState = ntohl(stateNetworkOrder);
-    dataPtr += sizeof(stateNetworkOrder);
-
-    memcpy(&stateNetworkOrder, dataPtr, sizeof(stateNetworkOrder));
-    sharedMemory->HighControlState = ntohl(stateNetworkOrder);
     dataPtr += sizeof(stateNetworkOrder);
 
     uint64_t localTimeNetworkOrder;
@@ -272,7 +182,6 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
         uint64_t motorPositionNetworkOrder;
         memcpy(&motorPositionNetworkOrder, dataPtr, sizeof(motorPositionNetworkOrder));
         sharedMemory->motorPosition[i] = ntohd(motorPositionNetworkOrder);
-        sharedMemory->motorPosition[i] = sharedMemory->motorPosition[i] / PI * 180;
         dataPtr += sizeof(motorPositionNetworkOrder);
     }
     for (int i = 0; i < MOTOR_NUM; ++i)
@@ -313,20 +222,20 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
 
     unpackingEigenVector3d(dataPtr, sharedMemory->globalBasePosition);
     unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseVelocity);
+    unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseVelocity);
     unpackingEigenVector4d(dataPtr, sharedMemory->globalBaseQuaternion);
-
+    unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseEulerAngle);
+    unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseAngularVelocity);
+    unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseAngularVelocity);
+    unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseAcceleration);
     unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseDesiredPosition);
     unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseDesiredVelocity);
     unpackingEigenVector4d(dataPtr, sharedMemory->globalBaseDesiredQuaternion);
-
     unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseDesiredEulerAngle);
     unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseDesiredAngularVelocity);
+    unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseDesiredAngularVelocity);
     unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseDesiredVelocity);
-    unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseVelocity);
 
-    unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseEulerAngle);
-    unpackingEigenVector3d(dataPtr, sharedMemory->bodyBaseAngularVelocity);
-    unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseAcceleration);
 
     for (int i = 0; i < 4; ++i)
     {
@@ -340,30 +249,95 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
         unpackingEigenVector3d(dataPtr, sharedMemory->solvedGRF[i]);
     }
 
-    memcpy(sharedMemory->contactState, dataPtr, 4 * sizeof(bool));
+    for (int i = 0; i < 6; ++i)
+    {
+        double x, y, z;
+        std::memcpy(&x, dataPtr, sizeof(double));
+        dataPtr += sizeof(double);
+        std::memcpy(&y, dataPtr, sizeof(double));
+        dataPtr += sizeof(double);
+        std::memcpy(&z, dataPtr, sizeof(double));
+        dataPtr += sizeof(double);
+        sharedMemory->qddot[i] = Eigen::Vector3d(x, y, z);
+    }
+
+    std::memcpy(sharedMemory->contactState, dataPtr, 4 * sizeof(bool));
     dataPtr += 4 * sizeof(bool);
 
+    // HWData->threadElapsedTime를 언패킹
+    std::memcpy(sharedMemory->threadElapsedTime, dataPtr, 11 * sizeof(double));
+    dataPtr += 11 * sizeof(double);
+
+    // sharedMemory->contactResidualTorque를 언패킹
+    std::memcpy(sharedMemory->contactResidualTorque, dataPtr, 4 * sizeof(double));
+    dataPtr += 4 * sizeof(double);
+}
+
+
+void TCPCommunication::unpackingEigenVector3d(const char*& dataPtr, Eigen::Vector3d& vec)
+{
     for (int i = 0; i < 3; ++i)
     {
-        uint64_t testBasePosNetworkOrder;
-        memcpy(&testBasePosNetworkOrder, dataPtr, sizeof(testBasePosNetworkOrder));
-        sharedMemory->testBasePos[i] = ntohd(testBasePosNetworkOrder);
-        dataPtr += sizeof(testBasePosNetworkOrder);
+        uint64_t networkOrder;
+        memcpy(&networkOrder, dataPtr, sizeof(networkOrder));
+        vec[i] = ntohd(networkOrder);
+        dataPtr += sizeof(networkOrder);
     }
+}
 
-    for (int i = 0; i < 3; ++i)
+void TCPCommunication::unpackingEigenVector4d(const char*& dataPtr, Eigen::Vector4d& vec)
+{
+    for (int i = 0; i < 4; ++i)
     {
-        uint64_t testBaseVelNetworkOrder;
-        memcpy(&testBaseVelNetworkOrder, dataPtr, sizeof(testBaseVelNetworkOrder));
-        sharedMemory->testBaseVel[i] = ntohd(testBaseVelNetworkOrder);
-        dataPtr += sizeof(testBaseVelNetworkOrder);
+        uint64_t networkOrder;
+        memcpy(&networkOrder, dataPtr, sizeof(networkOrder));
+        vec[i] = ntohd(networkOrder);
+        dataPtr += sizeof(networkOrder);
     }
+}
 
-    for (int i = 0; i < 11; ++i)
+uint64_t TCPCommunication::htonll(uint64_t value)
+{
+    if (__BYTE_ORDER == __LITTLE_ENDIAN)
     {
-        uint64_t threadElapsedTimeNetworkOrder;
-        memcpy(&threadElapsedTimeNetworkOrder, dataPtr, sizeof(threadElapsedTimeNetworkOrder));
-        sharedMemory->threadElapsedTime[i] = ntohd(threadElapsedTimeNetworkOrder);
-        dataPtr += sizeof(threadElapsedTimeNetworkOrder);
+        return ((uint64_t)htonl(value & 0xFFFFFFFF) << 32) | htonl(value >> 32);
     }
+    else
+    {
+        return value;
+    }
+}
+
+uint64_t TCPCommunication::ntohll(uint64_t value)
+{
+    if (__BYTE_ORDER == __LITTLE_ENDIAN)
+    {
+        return ((uint64_t)ntohl(value & 0xFFFFFFFF) << 32) | ntohl(value >> 32);
+    }
+    else
+    {
+        return value;
+    }
+}
+
+uint64_t TCPCommunication::htond(double hostDouble)
+{
+    union
+    {
+        double d;
+        uint64_t i;
+    } u;
+    u.d = hostDouble;
+    return htobe64(u.i);
+}
+
+double TCPCommunication::ntohd(uint64_t net64)
+{
+    union
+    {
+        uint64_t i;
+        double d;
+    } u;
+    u.i = be64toh(net64);
+    return u.d;
 }

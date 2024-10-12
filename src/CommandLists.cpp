@@ -11,90 +11,113 @@ CommandLists::CommandLists()
 
 void CommandLists::NoCommand()
 {
-    sharedMemory->UDPCommand = CMD_NO_ACT;
+    sharedMemory->udp.joyCommand = CMD_NO_INPUT;
 }
 
 void CommandLists::Start()
 {
-    sharedMemory->UDPCommand = CMD_START;
+    sharedMemory->udp.joyCommand = CMD_START;
     printf("[CMD] : Robot Start\n");
 }
 
-void CommandLists::Recovery()
+void CommandLists::Restart()
 {
-    sharedMemory->UDPCommand = CMD_RECOVERY;
+    sharedMemory->udp.joyCommand = CMD_RESTART;
     printf("[CMD] : Recovery\n");
 }
 
-void CommandLists::HomeUp()
+void CommandLists::StandUp()
 {
-    sharedMemory->UDPCommand = CMD_HOME_UP;
+    sharedMemory->udp.joyCommand = CMD_STAND_UP;
     printf("[CMD] : Home Up\n");
 }
 
-void CommandLists::HomeDown()
+void CommandLists::SitDown()
 {
-    sharedMemory->UDPCommand = CMD_HOME_DOWN;
+    sharedMemory->udp.joyCommand = CMD_SIT_DOWN;
     printf("[CMD] : Home Down\n");
-}
-
-void CommandLists::TrotFast()
-{
-    sharedMemory->UDPCommand = CMD_TROT_OVERLAP;
-    printf("[CMD] : Trot Fast\n");
 }
 
 void CommandLists::TrotSlow()
 {
-    sharedMemory->UDPCommand = CMD_TROT_SLOW;
+    sharedMemory->udp.joyCommand = CMD_TROT_SLOW;
     printf("[CMD] : Trot Slow\n");
 }
 
 void CommandLists::TrotStop()
 {
-    sharedMemory->UDPCommand = CMD_TROT_STOP;
+//    if(sharedMemory->FSMState == FSM_TROT_SLOW)
+//    {
+//        sharedMemory->udp.joyCommand = CMD_TROT_STOP;
+//    }
+//    else
+//    {
+//        sharedMemory->udp.joyCommand = CMD_NO_INPUT;
+//    }
+
+    sharedMemory->udp.joyCommand = CMD_TROT_STOP;
     printf("[CMD] : Trot Stop\n");
+}
+
+void CommandLists::TrotForceStop()
+{
+//    if(sharedMemory->FSMState == FSM_TROT_STOP)
+//    {
+//        sharedMemory->udp.joyCommand = CMD_TROT_STOP;
+//    }
+//    else
+//    {
+//        sharedMemory->udp.joyCommand = CMD_NO_INPUT;
+//    }
+    sharedMemory->udp.joyCommand = CMD_TROT_STOP;
+    printf("[CMD] : Trot Force Stop\n");
 }
 
 void CommandLists::EmergencyStop()
 {
-    sharedMemory->UDPCommand = CMD_E_STOP;
+    sharedMemory->udp.joyCommand = CMD_EMERGENCY_STOP;
     printf("[CMD] : Emergency Stop\n");
 }
 
-void CommandLists::SetBodyVelocity(double *refVel)
+void CommandLists::SetBodyVelocity(double refVelX, double refVelY, double refVelYaw)
 {
-    double velocityLimit[3] = {0.0};
+    Eigen::Vector3d refLinVel = Eigen::Vector3d (refVelX, refVelY, 0);
+    Eigen::Vector3d refAngVel = Eigen::Vector3d (0, 0, refVelYaw);
 
     switch (sharedMemory->FSMState)
     {
-        case FSM_TROT_SLOW:
-        {
-            velocityLimit[0] = 0.8;
-            velocityLimit[1] = 0.4;
-            velocityLimit[2] = 0.65;
-            break;
-        }
-        case FSM_TROT_FAST:
-        {
-            velocityLimit[0] = 0.8;
-            velocityLimit[1] = 0.4;
-            velocityLimit[2] = 0.65;
-            break;
-        }
-        case FSM_OVERLAP_TROT_FAST:
-        {
-            velocityLimit[0] = 1.2;
-            velocityLimit[1] = 0.4;
-            velocityLimit[2] = 0.65;
-            break;
-        }
-        default:
-            break;
+    case FSM_TROT_SLOW:
+        refLinVel = refLinVel.array().max(-0.8);
+        refLinVel = refLinVel.array().min(0.8);
+
+        refAngVel = refAngVel.array().max(-0.7);
+        refAngVel = refAngVel.array().min(0.7);
+        break;
+    case FSM_TROT_FAST:
+        refLinVel = refLinVel.array().max(-1.2);
+        refLinVel = refLinVel.array().min(1.2);
+
+        refAngVel = refAngVel.array().max(-0.7);
+        refAngVel = refAngVel.array().min(0.7);
+        break;
+    case FSM_OVERLAP_TROT_FAST:
+        refLinVel = refLinVel.array().max(-0.8);
+        refLinVel = refLinVel.array().min(0.8);
+
+        refAngVel = refAngVel.array().max(-0.7);
+        refAngVel = refAngVel.array().min(0.7);
+        break;
+    case FSM_WHEEL_MOVE:
+        refLinVel = refLinVel.array().max(-1.5);
+        refLinVel = refLinVel.array().min(1.5);
+
+        refAngVel.setZero();
+        break;
+    default:
+        break;
 
     }
 
-    sharedMemory->UDPRefBodyLinearVelocity_x = fmin(fmax(refVel[0], -velocityLimit[0]), velocityLimit[0]);
-    sharedMemory->UDPRefBodyLinearVelocity_y = fmin(fmax(refVel[1], -velocityLimit[1]), velocityLimit[1]);
-    sharedMemory->UDPRefBodyAngularVelocity_yaw = fmin(fmax(refVel[2], -velocityLimit[2]), velocityLimit[2]);
+    sharedMemory->udp.userLinVel = refLinVel;
+    sharedMemory->udp.userAngVel = refAngVel;
 }

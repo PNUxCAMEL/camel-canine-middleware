@@ -9,6 +9,7 @@
 #include "custom_struct.hpp"
 #include "EnumClasses.hpp"
 #define MPC_HORIZON         5
+#define R2D                 57.2957802
 
 typedef class _HWD_
 {
@@ -20,7 +21,6 @@ private:
     _HWD_();
 public:
     SENSOR_INFO sensor;
-    GAMEPAD gamepad;
     double motorDesiredTorque[MOTOR_NUM];
     double motorDesiredPos[MOTOR_NUM];
     double threadElapsedTime[11];
@@ -39,39 +39,22 @@ private:
     SharedMemory();
 public:
     // For UI
-    YAMLPARAM yamlParams;
+    UDP_STRUCT udp;
 
-    std::string consoleAddress;
-    bool consoleConnection;
+    std::string robotAddress;
 
-    UI_COMMAND command;
+    ROBOT_COMMAND command;
     int gaitTable[MPC_HORIZON*4];
 
-    bool isNan;
-    bool isRamp;
-    bool newCommand;
-
-    bool canFLStatus;
-    bool canFRStatus;
-    bool canHLStatus;
-    bool canHRStatus;
-
     bool motorStatus;
-    bool motorFLStatus;
-    bool motorFRStatus;
-    bool motorHLStatus;
-    bool motorHRStatus;
-
-    int canFLState;
-    int canFRState;
-    int canHLState;
-    int canHRState;
 
     int FSMState;
-    int LowControlState;
-    int HighControlState;
 
     double localTime;
+
+    struct
+    {
+    } tcp;
 
     int motorErrorStatus[MOTOR_NUM];
     int motorTemp[MOTOR_NUM];
@@ -109,70 +92,18 @@ public:
 
     double contactResidualTorque[4];
     bool contactState[4];
-    bool CartesianContactState[4][3];
-    bool earlyLanding[4];
-    bool lateLanding[4];
+
     Eigen::Vector3d solvedGRF[4];
 
-    double testBasePos[3];
-    double testBaseVel[3];
     double threadElapsedTime[11];
     // 0: Command, 1: High controller, 2: Low controller,
     // 3: CAN_FL, 4: CAN_FR, 5: CAN_HL, 6: CAN_HR, 7: IMU, 8: Visual
     // 9: PC_client, 10: PC_server
 
-    // For Controller
-    int gaitState;
-    double gaitPeriod;
-    double swingPeriod;
-    double standPeriod;
-    bool gaitChangeFlag;
-    bool isFirstHome[4];
-    bool bSwingLiftDown[4];
-    bool bGaitState[4];
-
-    bool isSimulation;
-    bool throwFlag;
-    bool bIsEndHome;
-    int visualState;
-
-    Eigen::Vector3d estimatedGroundSlope;
-    double tempRes[4];
-    double simulContactForceFL;
-    double simulContactForceFR;
-    double simulContactForceHL;
-    double simulContactForceHR;
-
-    Eigen::Vector3d swingPgain[4];
-    Eigen::Vector3d swingDgain[4];
-
-    Eigen::Vector3d mpcDesiredPos[MPC_HORIZON];
-
-    STAIR_KEY_FRAME stairKeyFrame;
-    Eigen::Vector3d globalReferencePosition;
-    Eigen::Vector3d swingDesiredAcc[4];
     Eigen::Vector3d qddot[6];
 
-    bool paramChangedFlag;
-    bool mpcParamChangedFlag;
-    bool swingParamChangedFlag;
-    bool wbcParamChangedFlag;
-
-    bool swingUpPhase[4];
-
-    Eigen::Vector3d BasePos;
-    Eigen::Vector3d BasePos_ref;
-    Eigen::Vector3d BaseVel;
-    Eigen::Vector3d BaseVel_ref;
-
-    bool BasePosFLAG;
-
-    bool isRobotRestart;
-
-    double UDPRefBodyLinearVelocity_x;
-    double UDPRefBodyLinearVelocity_y;
-    double UDPRefBodyAngularVelocity_yaw;
-    int8_t UDPCommand;
+    bool isTCPConnected;
+    double TCP_Duration;
 
 } SHM, * pSHM;
 
