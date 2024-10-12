@@ -52,9 +52,9 @@ public:
 
     double localTime;
 
-    struct
-    {
-    } tcp;
+//    struct
+//    {
+//    } tcp;
 
     int motorErrorStatus[MOTOR_NUM];
     int motorTemp[MOTOR_NUM];

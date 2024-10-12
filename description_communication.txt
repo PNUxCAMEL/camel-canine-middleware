@@ -1,10 +1,15 @@
 1. UDP (to canine)
- - UDPCommand : set the states of the robot.
- - UDPRefBodyAngularVelocity_x : reference x-axis velocity in body frame. [m/s]
- - UDPRefBodyAngularVelocity_y : reference y-axis velocity in body frame. [m/s]
- - UDPRefBodyAngularVelocity_yaw : reference yaw velocity. [rad/s]
+ - UDP.JoyCommand : set the states of the robot.
+ - UDP.userLinVel : reference linear velocity in body frame. [m/s]
+ - UDP.userAngVel : reference angular velocity. [rad/s]
 
  2. TCP (from canine)
  - bodyBaseVelocity : x,y,z axis velocities in body frame. [m/s]
- - globalBaseEulerAngle : roll,pitch,yaw [rad]
+ - globalBaseEulerAngle : roll,pitch,yaw. Yaw is multi-turned data.[rad]
  - bodyBaseAngularVelocity : angular velocity in body frame.  [rad/s]
+ - motorErrorStatus : RMD motor's raw error data [int]
+ - motorTemp : motor temperature [Celsius]
+ - motorVoltage : motor voltage only you can get in initial state. [V]
+ - motorPosition : motor position with gear box [rad]
+ - motorVelocity : motor velocity with gear box [rad/s]
+ ... more details about 'unpackingTCPmsg' function in TCP communication.cpp

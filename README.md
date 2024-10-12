@@ -39,4 +39,4 @@ Follow these steps to get started:
 └── main.cpp
 ```
 
-![CANINE FSM](CanineFSM.png)
+![CANINE FSM](Wade_FSM.png)
