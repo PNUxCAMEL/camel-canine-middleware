@@ -1,6 +1,9 @@
 //
 // Created by jh on 24. 7. 3.
 //
+#include <poll.h>
+#include <unistd.h>
+
 #include "Setup.hpp"
 #include "CommandLists.hpp"
 #include "SharedMemory.hpp"
@@ -9,7 +12,6 @@
 #include "UDPCommunication.hpp"
 
 SharedMemory* sharedMemory = SharedMemory::getInstance();
-HWD* HWData = HWD::getInstance();
 
 CommandLists commandLists;
 
@@ -22,16 +24,19 @@ int trotORdown = 0; //0: trot, 1: down
 void* sendRobotCommand_udp(void* arg);
 void* receiveRobotStatus_tcp(void* arg);
 void* highController(void* arg);
+void* KeyListener(void* arg);
 
 int main()
 {
     pthread_t UDPthread;
     pthread_t TCPthread;
     pthread_t HighControlThread;
+    pthread_t KeyListenerThread;
 
     generateRtThread(HighControlThread, highController, "RT_Controller", 5, 99, NULL);
     generateNrtThread(UDPthread, sendRobotCommand_udp, "UDP_send", 6, NULL);
     generateNrtThread(TCPthread, receiveRobotStatus_tcp, "TCP_receive", 7, NULL);
+    generateNrtThread(KeyListenerThread, KeyListener, "key_board", 4, NULL);
 
     while (true)
     {
@@ -58,6 +63,29 @@ void* receiveRobotStatus_tcp(void* arg)
     catch (std::exception& e)
     {
         std::cerr << "Exception: " << e.what() << std::endl;
+    }
+}
+
+void* KeyListener(void* arg) {
+    struct pollfd fds[1];
+    fds[0].fd = STDIN_FILENO; // 표준 입력 (키보드)
+    fds[0].events = POLLIN;   // 읽기 이벤트 감지
+
+    while (true) {
+        if(sharedMemory->isTCPConnected)
+        {
+            int ret = poll(fds, 1, 100); // 100ms 타임아웃
+            if (ret > 0 && (fds[0].revents & POLLIN)) {
+                char ch;
+                read(STDIN_FILENO, &ch, 1); // 키 입력 읽기
+                if (ch == 'e') {
+                    std::cout << "'e' key pressed! e-stop" << std::endl;
+                    commandLists.EmergencyStop();
+                }
+            }
+        }
+        tcflush(STDIN_FILENO, TCIFLUSH);
+        usleep(50000); // CPU 사용량을 줄이기 위해 잠시 대기
     }
 }
 
@@ -197,57 +225,4 @@ void* highController(void* arg)
             std::cout << "[MAIN] Deadline Miss, High Controller Real-Time Thread : " << timeDifferentMs(&time1, &time2) * 0.001 << " ms" << std::endl;
         }
     }
-
-//    if(sharedMemory->isTCPConnected)
-//    {
-//        std::cout<<"go..."<<std::endl;
-//        sleep(2);
-//        commandLists.Start();
-//        sleep(4);
-//        commandLists.HomeUp();
-//        sleep(4);
-//        commandLists.TrotSlow();
-//        sleep(1);
-//
-//        clock_gettime(CLOCK_REALTIME, &time1);
-//        while (true)
-//        {
-//            localTime += dT;
-//            clock_gettime(CLOCK_REALTIME, &time2);
-//            timeAddus(&time1, threadPeriod);
-//
-//            // Functions -- start
-//
-//            double refBodyVelocityX = 0.1; // reference x-axis velocity in body frame. [m/s]
-//            double refBodyVelocityY = 0.0; // reference y-axis velocity in body frame. [m/s]
-//            double refBodyVelocityYaw = 0.0; // reference yaw velocity. [rad/s]
-//            commandLists.SetBodyVelocity(refBodyVelocityX, refBodyVelocityY, refBodyVelocityYaw);
-//
-//            std::cout << "[shared memory] base velocity in body frame (x,y): " << sharedMemory->bodyBaseVelocity[0] << ", " << sharedMemory->bodyBaseVelocity[1] << std::endl;
-//            std::cout << "[shared memory] base yaw rate (yaw_dot): " << sharedMemory->bodyBaseAngularVelocity[2] << std::endl;
-//            std::cout << "[shared memory] base Euler angle (roll, pitch, yaw): " << sharedMemory->globalBaseEulerAngle[0] << ", " << sharedMemory->globalBaseEulerAngle[1] << ", " << sharedMemory->globalBaseEulerAngle[2] << std::endl;
-//
-//            if(localTime > 5.0)
-//            {
-//                break;
-//            }
-//
-//            // Functions -- end
-//
-//            clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &time1, NULL);
-//            if (timeCmp(&time2, &time1) > 0)
-//            {
-//                std::cout << "[MAIN] Deadline Miss, High Controller Real-Time Thread : " << timeDifferentMs(&time1, &time2) * 0.001 << " ms" << std::endl;
-//            }
-//        }
-//        commandLists.TrotStop();
-//        sleep(4);
-//        commandLists.HomeDown();
-//        sleep(4);
-//        commandLists.EmergencyStop();
-//        sleep(2);
-//    }
-//    else
-//    {
-//    }
 }
