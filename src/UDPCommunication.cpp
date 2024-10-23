@@ -5,6 +5,10 @@
 #include "UDPCommunication.hpp"
 
 UDPCommunication::UDPCommunication()
+    : mPrevFSMState(FSM_INITIAL)
+    , mPrevArmFSMState(ARM_FSM::ARM_INITIAL)
+    , mbPrevSlopeMode(false)
+    , mbPrevArmTeleState(false)
 {
 
 }
@@ -30,6 +34,7 @@ void UDPCommunication::Send()
 void UDPCommunication::packageUDPmsg(unsigned char* msg)
 {
     SharedMemory* sharedMemory = SharedMemory::getInstance();
+    clearUDPCommand();
     uint guiButtonState = sharedMemory->UDPCommand;
     unsigned char gb_u = (0xFF00 & guiButtonState) >> 8;
     unsigned char gb_l = 0x00FF & guiButtonState;
@@ -41,7 +46,22 @@ void UDPCommunication::packageUDPmsg(unsigned char* msg)
     mempcpy(&msg[19], &sharedMemory->UDPRefBodyLinearVelocity_x, sizeof(double));
     mempcpy(&msg[27], &sharedMemory->UDPRefBodyLinearVelocity_y, sizeof(double));
     mempcpy(&msg[35], &sharedMemory->UDPRefBodyAngularVelocity_yaw, sizeof(double));
-    // tail
-    msg[43] = 0x00;
-    msg[44] = 0x01;
+    mempcpy(&msg[43], &sharedMemory->UDPDesiredEndEffectorPosition, sizeof(double)*3);
+    mempcpy(&msg[67], &sharedMemory->UDPDesiredEndEffectorEulerAngle, sizeof(double)*3);
+    mempcpy(&msg[91], &sharedMemory->UDPDesiredTeleOperationLinearVelocity, sizeof(double)*3);
+    mempcpy(&msg[115], &sharedMemory->UDPDesiredTeleOperationAngularVelocity, sizeof(double)*3);
+}
+
+void UDPCommunication::clearUDPCommand()
+{
+    SharedMemory* sharedMemory = SharedMemory::getInstance();
+    if ((mPrevFSMState != sharedMemory->FSMState) || (mbPrevSlopeMode != sharedMemory->isRamp) || (mPrevArmFSMState != sharedMemory->armFSMState)
+         || (mbPrevArmTeleState != sharedMemory->isArmTele))
+    {
+        sharedMemory->UDPCommand = 0;
+    }
+    mbPrevSlopeMode = sharedMemory->isRamp;
+    mPrevFSMState = sharedMemory->FSMState;
+    mPrevArmFSMState = sharedMemory->armFSMState;
+    mbPrevArmTeleState = sharedMemory->isArmTele;
 }

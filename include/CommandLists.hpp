@@ -22,6 +22,11 @@ public:
     void TrotSlow();
     void TrotStop();
     void EmergencyStop();
+    void ArmHome();
+    void ArmMove(double* goalPosition, double* goalEulerAngle);
+    void ArmTeleoperation(double* armLinearVelocityRef, double* armAngularVelocityRef);
+    void ArmGripperOpen();
+    void ArmGripperClose();
     void SetBodyVelocity(double* refVel);
 
 private:
@@ -38,7 +43,12 @@ private:
         CMD_TROT_SLOW,
         CMD_TROT_FAST,
         CMD_TROT_STOP,
-        CMD_E_STOP
+        CMD_E_STOP,
+        CMD_ARM_HOME,
+        CMD_ARM_MOVE,
+        CMD_ARM_TELE,
+        CMD_ARM_GRIPPER_OPEN,
+        CMD_ARM_GRIPPER_CLOSE
     };
 };
 

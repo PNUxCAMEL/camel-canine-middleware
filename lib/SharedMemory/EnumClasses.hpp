@@ -83,4 +83,15 @@ enum FSM
     FSM_OVERLAP_TROT_FAST
 };
 
+enum ARM_FSM
+{
+    ARM_INITIAL,
+    ARM_E_STOP,
+    ARM_MOTOR_READY,
+    ARM_HOME,
+    ARM_TELE,
+    ARM_MOVE,
+    ARM_READY
+};
+
 #endif //RAISIM_ROBOTDESCRIPTION_H

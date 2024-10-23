@@ -15,13 +15,13 @@ int TCPCommunication::Initialize()
     serverSocket = socket(PF_INET, SOCK_STREAM, 0);
     if (serverSocket == -1)
     {
-        std::cerr << "Cannot create socket" << std::endl;
+        std::cerr << "[TCP] Cannot create socket" << std::endl;
         return -1;
     }
 
     int opt = 1;
     if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
-        std::cerr << "setsockopt(SO_REUSEADDR) failed" << std::endl;
+        std::cerr << "[TCP] setsockopt(SO_REUSEADDR) failed" << std::endl;
         close(serverSocket);
         return -1;
     }
@@ -35,7 +35,7 @@ int TCPCommunication::Initialize()
     // 소켓에 주소 바인드
     if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == -1)
     {
-        std::cerr << "Bind failed" << std::endl;
+        std::cerr << "[TCP] Bind failed" << std::endl;
         close(serverSocket);
         return -1;
     }
@@ -43,12 +43,12 @@ int TCPCommunication::Initialize()
     // 연결 대기
     if (listen(serverSocket, 50) == -1)
     {
-        std::cerr << "Listen failed" << std::endl;
+        std::cerr << "[TCP] Listen failed" << std::endl;
         close(serverSocket);
         return -1;
     }
 
-    std::cout << "Server listening on port 60001" << std::endl;
+    std::cout << "[TCP] Server listening on port 60001" << std::endl;
     return 1;
 }
 
@@ -59,7 +59,7 @@ void TCPCommunication::Read()
 
         if (clientSocket == -1)
         {
-            std::cerr << "Accept failed" << std::endl;
+            std::cerr << "[TCP] Accept failed" << std::endl;
             return;
         }
 
@@ -69,7 +69,7 @@ void TCPCommunication::Read()
         int bytesRead = recv(clientSocket, &expectedBytesNetworkOrder, sizeof(expectedBytesNetworkOrder), 0);
         if (bytesRead != sizeof(expectedBytesNetworkOrder))
         {
-            std::cerr << "Error reading data size. Bytes read: " << bytesRead << std::endl;
+            std::cerr << "[TCP] Error reading data size. Bytes read: " << bytesRead << std::endl;
             close(clientSocket);
             return;
         }
@@ -77,7 +77,7 @@ void TCPCommunication::Read()
         int64_t expectedBytes64 = ntohll(expectedBytesNetworkOrder);  // 네트워크 바이트 오더를 호스트 바이트 오더로 변환
         if (expectedBytes64 > INT_MAX)
         {
-            std::cerr << "Data size too large: " << expectedBytes64 << std::endl;
+            std::cerr << "[TCP] Data size too large: " << expectedBytes64 << std::endl;
             close(clientSocket);
             return;
         }
@@ -85,7 +85,7 @@ void TCPCommunication::Read()
 
         if (expectedBytes <= 0)
         {
-            std::cerr << "Invalid data size: " << expectedBytes << std::endl;
+            std::cerr << "[TCP] Invalid data size: " << expectedBytes << std::endl;
             close(clientSocket);
             return;
         }
@@ -99,7 +99,7 @@ void TCPCommunication::Read()
             bytesRead = recv(clientSocket, dataBuffer.data() + totalBytesRead, expectedBytes - totalBytesRead, 0);
             if (bytesRead <= 0)
             {
-                std::cerr << "Failed to receive full data. Bytes read: " << bytesRead << std::endl;
+                std::cerr << "[TCP] Failed to receive full data. Bytes read: " << bytesRead << std::endl;
                 close(clientSocket);
                 continue;
             }
@@ -221,6 +221,9 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
     memcpy(&sharedMemory->isRamp, dataPtr, sizeof(sharedMemory->isRamp));
     dataPtr += sizeof(sharedMemory->isRamp);
 
+    memcpy(&sharedMemory->isArmTele, dataPtr, sizeof(sharedMemory->isArmTele));
+    dataPtr += sizeof(sharedMemory->isArmTele);
+
     memcpy(&sharedMemory->newCommand, dataPtr, sizeof(sharedMemory->newCommand));
     dataPtr += sizeof(sharedMemory->newCommand);
 
@@ -230,6 +233,10 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
     int stateNetworkOrder;
     memcpy(&stateNetworkOrder, dataPtr, sizeof(stateNetworkOrder));
     sharedMemory->FSMState = ntohl(stateNetworkOrder);
+    dataPtr += sizeof(stateNetworkOrder);
+
+    memcpy(&stateNetworkOrder, dataPtr, sizeof(stateNetworkOrder));
+    sharedMemory->armFSMState = ntohl(stateNetworkOrder);
     dataPtr += sizeof(stateNetworkOrder);
 
     memcpy(&stateNetworkOrder, dataPtr, sizeof(stateNetworkOrder));
@@ -245,71 +252,140 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
     sharedMemory->localTime = ntohd(localTimeNetworkOrder);
     dataPtr += sizeof(localTimeNetworkOrder);
 
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         int motorErrorStatusNetworkOrder;
         memcpy(&motorErrorStatusNetworkOrder, dataPtr, sizeof(motorErrorStatusNetworkOrder));
         sharedMemory->motorErrorStatus[i] = ntohl(motorErrorStatusNetworkOrder);
         dataPtr += sizeof(motorErrorStatusNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         int motorTempNetworkOrder;
         memcpy(&motorTempNetworkOrder, dataPtr, sizeof(motorTempNetworkOrder));
         sharedMemory->motorTemp[i] = ntohl(motorTempNetworkOrder);
         dataPtr += sizeof(motorTempNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorVoltageNetworkOrder;
         memcpy(&motorVoltageNetworkOrder, dataPtr, sizeof(motorVoltageNetworkOrder));
         sharedMemory->motorVoltage[i] = ntohd(motorVoltageNetworkOrder);
         dataPtr += sizeof(motorVoltageNetworkOrder);
     }
-    const double PI = 3.141592;
-    for (int i = 0; i < MOTOR_NUM; ++i)
+
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorPositionNetworkOrder;
         memcpy(&motorPositionNetworkOrder, dataPtr, sizeof(motorPositionNetworkOrder));
         sharedMemory->motorPosition[i] = ntohd(motorPositionNetworkOrder);
-        sharedMemory->motorPosition[i] = sharedMemory->motorPosition[i] / PI * 180;
         dataPtr += sizeof(motorPositionNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorVelocityNetworkOrder;
         memcpy(&motorVelocityNetworkOrder, dataPtr, sizeof(motorVelocityNetworkOrder));
         sharedMemory->motorVelocity[i] = ntohd(motorVelocityNetworkOrder);
         dataPtr += sizeof(motorVelocityNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorTorqueNetworkOrder;
         memcpy(&motorTorqueNetworkOrder, dataPtr, sizeof(motorTorqueNetworkOrder));
         sharedMemory->motorTorque[i] = ntohd(motorTorqueNetworkOrder);
         dataPtr += sizeof(motorTorqueNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorDesiredPositionNetworkOrder;
         memcpy(&motorDesiredPositionNetworkOrder, dataPtr, sizeof(motorDesiredPositionNetworkOrder));
         sharedMemory->motorDesiredPosition[i] = ntohd(motorDesiredPositionNetworkOrder);
         dataPtr += sizeof(motorDesiredPositionNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorDesiredVelocityNetworkOrder;
         memcpy(&motorDesiredVelocityNetworkOrder, dataPtr, sizeof(motorDesiredVelocityNetworkOrder));
         sharedMemory->motorDesiredVelocity[i] = ntohd(motorDesiredVelocityNetworkOrder);
         dataPtr += sizeof(motorDesiredVelocityNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorDesiredTorqueNetworkOrder;
         memcpy(&motorDesiredTorqueNetworkOrder, dataPtr, sizeof(motorDesiredTorqueNetworkOrder));
         sharedMemory->motorDesiredTorque[i] = ntohd(motorDesiredTorqueNetworkOrder);
         dataPtr += sizeof(motorDesiredTorqueNetworkOrder);
     }
+
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        int armMotorErrorStatusNetworkOrder;
+        memcpy(&armMotorErrorStatusNetworkOrder, dataPtr, sizeof(armMotorErrorStatusNetworkOrder));
+        sharedMemory->armMotorErrorStatus[i] = ntohl(armMotorErrorStatusNetworkOrder);
+        dataPtr += sizeof(armMotorErrorStatusNetworkOrder);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        int armMotorTempNetworkOrder;
+        memcpy(&armMotorTempNetworkOrder, dataPtr, sizeof(armMotorTempNetworkOrder));
+        sharedMemory->armMotorTemp[i] = ntohl(armMotorTempNetworkOrder);
+        dataPtr += sizeof(armMotorTempNetworkOrder);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotorVoltageNetworkOrder;
+        memcpy(&armMotorVoltageNetworkOrder, dataPtr, sizeof(armMotorVoltageNetworkOrder));
+        sharedMemory->armMotorVoltage[i] = ntohd(armMotorVoltageNetworkOrder);
+        dataPtr += sizeof(armMotorVoltageNetworkOrder);
+    }
+
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotorPositionNetworkOrder;
+        memcpy(&armMotorPositionNetworkOrder, dataPtr, sizeof(armMotorPositionNetworkOrder));
+        sharedMemory->armMotorPosition[i] = ntohd(armMotorPositionNetworkOrder);
+        dataPtr += sizeof(armMotorPositionNetworkOrder);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotorVelocityNetworkOrder;
+        memcpy(&armMotorVelocityNetworkOrder, dataPtr, sizeof(armMotorVelocityNetworkOrder));
+        sharedMemory->armMotorVelocity[i] = ntohd(armMotorVelocityNetworkOrder);
+        dataPtr += sizeof(armMotorVelocityNetworkOrder);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotorTorqueNetworkOrder;
+        memcpy(&armMotorTorqueNetworkOrder, dataPtr, sizeof(armMotorTorqueNetworkOrder));
+        sharedMemory->armMotorTorque[i] = ntohd(armMotorTorqueNetworkOrder);
+        dataPtr += sizeof(armMotorTorqueNetworkOrder);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotorDesiredPositionNetworkOrder;
+        memcpy(&armMotorDesiredPositionNetworkOrder, dataPtr, sizeof(armMotorDesiredPositionNetworkOrder));
+        sharedMemory->armMotorDesiredPosition[i] = ntohd(armMotorDesiredPositionNetworkOrder);
+        dataPtr += sizeof(armMotorDesiredPositionNetworkOrder);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotorDesiredVelocityNetworkOrder;
+        memcpy(&armMotorDesiredVelocityNetworkOrder, dataPtr, sizeof(armMotorDesiredVelocityNetworkOrder));
+        sharedMemory->armMotorDesiredVelocity[i] = ntohd(armMotorDesiredVelocityNetworkOrder);
+        dataPtr += sizeof(armMotorDesiredVelocityNetworkOrder);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotorDesiredTorqueNetworkOrder;
+        memcpy(&armMotorDesiredTorqueNetworkOrder, dataPtr, sizeof(armMotorDesiredTorqueNetworkOrder));
+        sharedMemory->armMotorDesiredTorque[i] = ntohd(armMotorDesiredTorqueNetworkOrder);
+        dataPtr += sizeof(armMotorDesiredTorqueNetworkOrder);
+    }
+
+    unpackingEigenVector3d(dataPtr, sharedMemory->currentEndEffectorPosition);
+    unpackingEigenVector3d(dataPtr, sharedMemory->currentEndEffectorEulerAngle);
+    unpackingEigenVector3d(dataPtr, sharedMemory->currentEndEffectorVelocity);
+    unpackingEigenVector3d(dataPtr, sharedMemory->currentEndEffectorAngularVelocity);
 
     unpackingEigenVector3d(dataPtr, sharedMemory->globalBasePosition);
     unpackingEigenVector3d(dataPtr, sharedMemory->globalBaseVelocity);

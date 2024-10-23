@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include "Setup.hpp"
 #include "SharedMemory.hpp"
+#include "CommandLists.hpp"
 
 class UDPCommunication
 {
@@ -19,13 +20,18 @@ public:
 
 private:
     void packageUDPmsg(unsigned char* msg);
+    void clearUDPCommand();
 
 private:
     int clientSocket;
     struct sockaddr_in serverAddr;
     socklen_t addr_size;
 
-    unsigned char msg[45];
+    unsigned char msg[141];
+    int mPrevFSMState;
+    int mPrevArmFSMState;
+    bool mbPrevArmTeleState;
+    bool mbPrevSlopeMode;
 };
 
 

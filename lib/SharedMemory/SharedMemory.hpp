@@ -40,16 +40,33 @@ public:
     double UDPRefBodyLinearVelocity_y;
     double UDPRefBodyAngularVelocity_yaw;
 
-    /// Motor states
-    double motorPosition[MOTOR_NUM];
-    double motorVelocity[MOTOR_NUM];
-    double motorTorque[MOTOR_NUM];
-    double motorVoltage[MOTOR_NUM];
-    int motorTemp[MOTOR_NUM];
-    int motorErrorStatus[MOTOR_NUM];
-    double motorDesiredPosition[MOTOR_NUM];
-    double motorDesiredVelocity[MOTOR_NUM];
-    double motorDesiredTorque[MOTOR_NUM];
+    /// UDP: Arm Command
+    double UDPDesiredEndEffectorPosition[3];
+    double UDPDesiredEndEffectorEulerAngle[3];
+    double UDPDesiredTeleOperationLinearVelocity[3];
+    double UDPDesiredTeleOperationAngularVelocity[3];
+
+    /// Leg motor states
+    double motorPosition[MOTOR_NUM_LEG];
+    double motorVelocity[MOTOR_NUM_LEG];
+    double motorTorque[MOTOR_NUM_LEG];
+    double motorVoltage[MOTOR_NUM_LEG];
+    int motorTemp[MOTOR_NUM_LEG];
+    int motorErrorStatus[MOTOR_NUM_LEG];
+    double motorDesiredPosition[MOTOR_NUM_LEG];
+    double motorDesiredVelocity[MOTOR_NUM_LEG];
+    double motorDesiredTorque[MOTOR_NUM_LEG];
+
+    /// Arm motor states
+    int armMotorErrorStatus[MOTOR_NUM_ARM];
+    int armMotorTemp[MOTOR_NUM_ARM];
+    double armMotorVoltage[MOTOR_NUM_ARM];
+    double armMotorPosition[MOTOR_NUM_ARM];
+    double armMotorVelocity[MOTOR_NUM_ARM];
+    double armMotorTorque[MOTOR_NUM_ARM];
+    double armMotorDesiredPosition[MOTOR_NUM_ARM];
+    double armMotorDesiredVelocity[MOTOR_NUM_ARM];
+    double armMotorDesiredTorque[MOTOR_NUM_ARM];
 
     /// State estimator: global frame
     Eigen::Vector3d globalBasePosition;
@@ -59,6 +76,12 @@ public:
     Eigen::Vector3d bodyBaseVelocity;
     Eigen::Vector3d bodyBase2FootPosition[4];
     Eigen::Vector3d bodyBase2FootVelocity[4];
+
+    /// State estimator: Arm base frame to End effector frame
+    Eigen::Vector3d currentEndEffectorPosition;
+    Eigen::Vector3d currentEndEffectorEulerAngle;
+    Eigen::Vector3d currentEndEffectorVelocity;
+    Eigen::Vector3d currentEndEffectorAngularVelocity;
 
     /// State estimator: contact estimator
     bool contactState[4];
@@ -89,9 +112,11 @@ public:
     UI_COMMAND command;
     bool isNan;
     bool isRamp;
+    bool isArmTele;
     bool newCommand;
     bool motorStatus;
     int FSMState;
+    int armFSMState;
     int LowControlState;
     int HighControlState;
     int gaitTable[MPC_HORIZON*4];

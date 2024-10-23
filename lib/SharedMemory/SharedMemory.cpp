@@ -52,17 +52,19 @@ SharedMemory::SharedMemory()
     }
     isNan = false;
     isRamp = false;
+    isArmTele = false;
     newCommand = false;
 
     motorStatus = false;
 
     FSMState = 0;
+    armFSMState = 0;
     LowControlState = STATE_LOW_CONTROL_STOP;
     HighControlState = STATE_HIGH_CONTROL_STOP;
 
     localTime = 0;
 
-    for (int index = 0; index < MOTOR_NUM; index++)
+    for (int index = 0; index < MOTOR_NUM_LEG; index++)
     {
         motorErrorStatus[index] = 0;
         motorTemp[index] = 0;
@@ -75,6 +77,22 @@ SharedMemory::SharedMemory()
         motorDesiredTorque[index] = 0;
     }
 
+    for (int index = 0; index < MOTOR_NUM_ARM; index++)
+    {
+        armMotorErrorStatus[index] = 0;
+        armMotorTemp[index] = 0;
+        armMotorVoltage[index] = 0;
+        armMotorPosition[index] = 0;
+        armMotorVelocity[index] = 0;
+        armMotorTorque[index] = 0;
+        armMotorDesiredPosition[index] = 0;
+        armMotorDesiredVelocity[index] = 0;
+        armMotorDesiredTorque[index] = 0;
+    }
+    currentEndEffectorPosition.setZero();
+    currentEndEffectorEulerAngle.setZero();
+    currentEndEffectorVelocity.setZero();
+    currentEndEffectorAngularVelocity.setZero();
     globalBasePosition.setZero();
     globalBaseVelocity.setZero();
     globalBaseQuaternion[0] = 1.0;
@@ -113,13 +131,20 @@ SharedMemory::SharedMemory()
         solvedGRF[index].setZero();
     }
 
-    for (int index = 0; index < 13; index++)
+    for (int index = 0; index < 11; index++)
     {
         threadElapsedTime[index] = 0.0;
     }
 
+    UDPCommand = 0;
     UDPRefBodyLinearVelocity_x = 0.0;
     UDPRefBodyLinearVelocity_y = 0.0;
     UDPRefBodyAngularVelocity_yaw = 0.0;
-    UDPCommand = 0;
+    for (int index = 0 ; index < 3; index++)
+    {
+        UDPDesiredEndEffectorPosition[index] = 0.0;
+        UDPDesiredEndEffectorEulerAngle[index] = 0.0;
+        UDPDesiredTeleOperationLinearVelocity[index] = 0.0;
+        UDPDesiredTeleOperationAngularVelocity[index] = 0.0;
+    }
 }

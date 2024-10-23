@@ -8,7 +8,8 @@
 #include<Eigen/Dense>
 #include"JoystickInfo.hpp"
 
-#define MOTOR_NUM 12
+#define MOTOR_NUM_LEG 12
+#define MOTOR_NUM_ARM 7
 #define MAX_COMMAND_DATA 10
 #define MAX_CUSTOM_DATA     20
 
