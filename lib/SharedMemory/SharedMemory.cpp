@@ -119,4 +119,6 @@ SharedMemory::SharedMemory()
     }
 
     isTCPConnected = false;
+
+    stumbleRecovery = false;
 }
