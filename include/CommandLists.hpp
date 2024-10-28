@@ -21,6 +21,10 @@ public:
     void TrotSlow();
     void TrotStop();
     void TrotForceStop();
+    void Foot2WheelChange();
+    void Wheel2FootChange();
+    void WheelMove();
+    void WheelStop();
     void EmergencyStop();
     void SetBodyVelocity(double refVelX, double refVelY, double refVelYaw);
 

@@ -73,6 +73,30 @@ void CommandLists::TrotForceStop()
     printf("[CMD] : Trot Force Stop\n");
 }
 
+void CommandLists::Foot2WheelChange()
+{
+    sharedMemory->udp.joyCommand = CMD_FOOT2WHEEL_CHANGE;
+    printf("[CMD] : foot to wheel change\n");
+}
+
+void CommandLists::Wheel2FootChange()
+{
+    sharedMemory->udp.joyCommand = CMD_WHEEL2FOOT_CHANGE;
+    printf("[CMD] : wheel to foot change\n");
+}
+
+void CommandLists::WheelMove()
+{
+    sharedMemory->udp.joyCommand = CMD_WHEEL_MOVE;
+    printf("[CMD] : wheel move\n");
+}
+
+void CommandLists::WheelStop()
+{
+    sharedMemory->udp.joyCommand = CMD_WHEEL_STAND;
+    printf("[CMD] : wheel stop\n");
+}
+
 void CommandLists::EmergencyStop()
 {
     sharedMemory->udp.joyCommand = CMD_EMERGENCY_STOP;

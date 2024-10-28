@@ -19,7 +19,8 @@ double referenceTime;
 bool bIsReferenceTimeUpdate;
 int prevFSMState = 1000;
 int upORoff = 0; // 0: up, 1: off
-int trotORdown = 0; //0: trot, 1: down
+int trotORdown = 0; //0: trot, 1: foot2wheel 2: sit down
+int moveORfoot = 0; //0: move, 1: wheel2foot
 
 void* sendRobotCommand_udp(void* arg);
 void* receiveRobotStatus_tcp(void* arg);
@@ -168,6 +169,10 @@ void* highController(void* arg)
                     }
                     else if(trotORdown == 1)
                     {
+                        commandLists.Foot2WheelChange();
+                    }
+                    else if(trotORdown == 2)
+                    {
                         commandLists.SitDown();
                     }
                 }
@@ -195,6 +200,35 @@ void* highController(void* arg)
                 break;
             case FSM_SIT_DOWN:
                 upORoff = 1;
+                break;
+            case FSM_WHEEL_STAND:
+                if(moveORfoot == 0)
+                {
+                    commandLists.WheelMove();
+                }
+                else
+                {
+                    trotORdown = 2;
+                    commandLists.Wheel2FootChange();
+                }
+                break;
+            case FSM_WHEEL_MOVE:
+                if(bIsReferenceTimeUpdate)
+                {
+                    referenceTime = sharedMemory->localTime + 3.0;
+                    moveORfoot = 1;
+                }
+
+                commandLists.SetBodyVelocity(0.1, 0.0, 0.0);
+
+                std::cout << "[shared memory] base velocity in body frame (x,y): " << sharedMemory->bodyBaseVelocity[0] << ", " << sharedMemory->bodyBaseVelocity[1] << std::endl;
+                std::cout << "[shared memory] base yaw rate (yaw_dot): " << sharedMemory->bodyBaseAngularVelocity[2] << std::endl;
+                std::cout << "[shared memory] base Euler angle (roll, pitch, yaw): " << sharedMemory->globalBaseEulerAngle[0] << ", " << sharedMemory->globalBaseEulerAngle[1] << ", " << sharedMemory->globalBaseEulerAngle[2] << std::endl;
+
+                if(sharedMemory->localTime > referenceTime)
+                {
+                    commandLists.WheelStop();
+                }
                 break;
             case FSM_EMERGENCY_STOP:
                 if(bIsReferenceTimeUpdate)
