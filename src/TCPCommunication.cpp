@@ -271,6 +271,9 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
     // sharedMemory->contactResidualTorque를 언패킹
     std::memcpy(sharedMemory->contactResidualTorque, dataPtr, 4 * sizeof(double));
     dataPtr += 4 * sizeof(double);
+
+    memcpy(&sharedMemory->stumbleRecovery, dataPtr, sizeof(sharedMemory->stumbleRecovery));
+    dataPtr += sizeof(sharedMemory->stumbleRecovery);
 }
 
 

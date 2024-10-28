@@ -105,6 +105,8 @@ public:
     bool isTCPConnected;
     double TCP_Duration;
 
+    bool stumbleRecovery;
+
 } SHM, * pSHM;
 
 
