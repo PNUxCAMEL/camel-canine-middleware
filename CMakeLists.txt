@@ -5,6 +5,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Eigen3 REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LCM REQUIRED lcm)
+
+
+include_directories(${LCM_INCLUDE_DIRS})
+link_directories(${LCM_LIBRARY_DIRS})
+link_libraries(${LCM_LIBRARIES})
 
 add_subdirectory(lib)
 
@@ -19,6 +26,7 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         include
+        include/lcm_type
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -26,4 +34,5 @@ target_link_libraries(${PROJECT_NAME}
         threadGenerator
         SharedMemory
         Eigen3::Eigen
+        ${LCM_LIBRARIES}
 )
