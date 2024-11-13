@@ -70,9 +70,9 @@ void CommandLists::SetBodyVelocity(double *refVel)
     {
         case FSM_TROT_SLOW:
         {
-            velocityLimit[0] = 0.8;
-            velocityLimit[1] = 0.4;
-            velocityLimit[2] = 0.65;
+            velocityLimit[0] = 0.4;
+            velocityLimit[1] = 0.0;
+            velocityLimit[2] = 0.5;
             break;
         }
         case FSM_TROT_FAST:
