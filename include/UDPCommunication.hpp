@@ -23,7 +23,7 @@ private:
     struct sockaddr_in serverAddr;
     socklen_t addr_size;
 
-    char msg[53];
+    char msg[149];
     bool open();
     bool UDP_Open;
     void packageUDPmsg(char* msg);

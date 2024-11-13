@@ -155,21 +155,21 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
     sharedMemory->localTime = ntohd(localTimeNetworkOrder);
     dataPtr += sizeof(localTimeNetworkOrder);
 
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         int motorErrorStatusNetworkOrder;
         memcpy(&motorErrorStatusNetworkOrder, dataPtr, sizeof(motorErrorStatusNetworkOrder));
         sharedMemory->motorErrorStatus[i] = ntohl(motorErrorStatusNetworkOrder);
         dataPtr += sizeof(motorErrorStatusNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         int motorTempNetworkOrder;
         memcpy(&motorTempNetworkOrder, dataPtr, sizeof(motorTempNetworkOrder));
         sharedMemory->motorTemp[i] = ntohl(motorTempNetworkOrder);
         dataPtr += sizeof(motorTempNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorVoltageNetworkOrder;
         memcpy(&motorVoltageNetworkOrder, dataPtr, sizeof(motorVoltageNetworkOrder));
@@ -177,42 +177,42 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
         dataPtr += sizeof(motorVoltageNetworkOrder);
     }
     const double PI = 3.141592;
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorPositionNetworkOrder;
         memcpy(&motorPositionNetworkOrder, dataPtr, sizeof(motorPositionNetworkOrder));
         sharedMemory->motorPosition[i] = ntohd(motorPositionNetworkOrder);
         dataPtr += sizeof(motorPositionNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorVelocityNetworkOrder;
         memcpy(&motorVelocityNetworkOrder, dataPtr, sizeof(motorVelocityNetworkOrder));
         sharedMemory->motorVelocity[i] = ntohd(motorVelocityNetworkOrder);
         dataPtr += sizeof(motorVelocityNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorTorqueNetworkOrder;
         memcpy(&motorTorqueNetworkOrder, dataPtr, sizeof(motorTorqueNetworkOrder));
         sharedMemory->motorTorque[i] = ntohd(motorTorqueNetworkOrder);
         dataPtr += sizeof(motorTorqueNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorDesiredPositionNetworkOrder;
         memcpy(&motorDesiredPositionNetworkOrder, dataPtr, sizeof(motorDesiredPositionNetworkOrder));
         sharedMemory->motorDesiredPosition[i] = ntohd(motorDesiredPositionNetworkOrder);
         dataPtr += sizeof(motorDesiredPositionNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorDesiredVelocityNetworkOrder;
         memcpy(&motorDesiredVelocityNetworkOrder, dataPtr, sizeof(motorDesiredVelocityNetworkOrder));
         sharedMemory->motorDesiredVelocity[i] = ntohd(motorDesiredVelocityNetworkOrder);
         dataPtr += sizeof(motorDesiredVelocityNetworkOrder);
     }
-    for (int i = 0; i < MOTOR_NUM; ++i)
+    for (int i = 0; i < MOTOR_NUM_LEG; ++i)
     {
         uint64_t motorDesiredTorqueNetworkOrder;
         memcpy(&motorDesiredTorqueNetworkOrder, dataPtr, sizeof(motorDesiredTorqueNetworkOrder));
@@ -274,6 +274,90 @@ void TCPCommunication::unpackingTCPmsg(const std::vector<char>& dataBuffer)
 
     memcpy(&sharedMemory->stumbleRecovery, dataPtr, sizeof(sharedMemory->stumbleRecovery));
     dataPtr += sizeof(sharedMemory->stumbleRecovery);
+
+    int armFSMState;
+    memcpy(&armFSMState, dataPtr, sizeof(armFSMState));
+    sharedMemory->armFSMState = ntohl(armFSMState);
+    dataPtr += sizeof(armFSMState);
+
+
+    memcpy(&sharedMemory->isArmTele, dataPtr, sizeof(sharedMemory->isArmTele));
+    dataPtr += sizeof(sharedMemory->isArmTele);
+
+    memcpy(&sharedMemory->LowArmControlState, dataPtr, sizeof(sharedMemory->LowArmControlState));
+    dataPtr += sizeof(sharedMemory->LowArmControlState);
+
+    memcpy(&sharedMemory->armGRPControlMode, dataPtr, sizeof(sharedMemory->armGRPControlMode));
+    dataPtr += sizeof(sharedMemory->armGRPControlMode);
+
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        int armMotor;
+        memcpy(&armMotor, dataPtr, sizeof(armMotor));
+        sharedMemory->armMotorErrorStatus[i] = ntohl(armMotor);
+        dataPtr += sizeof(armMotor);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        int armMotor;
+        memcpy(&armMotor, dataPtr, sizeof(armMotor));
+        sharedMemory->armMotorTemp[i] = ntohl(armMotor);
+        dataPtr += sizeof(armMotor);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotor;
+        memcpy(&armMotor, dataPtr, sizeof(armMotor));
+        sharedMemory->armMotorVoltage[i] = ntohd(armMotor);
+        dataPtr += sizeof(armMotor);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotor;
+        memcpy(&armMotor, dataPtr, sizeof(armMotor));
+        sharedMemory->armMotorPosition[i] = ntohd(armMotor);
+        dataPtr += sizeof(armMotor);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotor;
+        memcpy(&armMotor, dataPtr, sizeof(armMotor));
+        sharedMemory->armMotorVelocity[i] = ntohd(armMotor);
+        dataPtr += sizeof(armMotor);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotor;
+        memcpy(&armMotor, dataPtr, sizeof(armMotor));
+        sharedMemory->armMotorTorque[i] = ntohd(armMotor);
+        dataPtr += sizeof(armMotor);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotor;
+        memcpy(&armMotor, dataPtr, sizeof(armMotor));
+        sharedMemory->armMotorDesiredPosition[i] = ntohd(armMotor);
+        dataPtr += sizeof(armMotor);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotor;
+        memcpy(&armMotor, dataPtr, sizeof(armMotor));
+        sharedMemory->armMotorDesiredVelocity[i] = ntohd(armMotor);
+        dataPtr += sizeof(armMotor);
+    }
+    for (int i = 0; i < MOTOR_NUM_ARM; ++i)
+    {
+        uint64_t armMotor;
+        memcpy(&armMotor, dataPtr, sizeof(armMotor));
+        sharedMemory->armMotorDesiredTorque[i] = ntohd(armMotor);
+        dataPtr += sizeof(armMotor);
+    }
+
+    unpackingEigenVector3d(dataPtr, sharedMemory->currentEndEffectorPosition);
+    unpackingEigenVector3d(dataPtr, sharedMemory->currentEndEffectorEulerAngle);
+    unpackingEigenVector3d(dataPtr, sharedMemory->currentEndEffectorVelocity);
+    unpackingEigenVector3d(dataPtr, sharedMemory->currentEndEffectorAngularVelocity);
 }
 
 

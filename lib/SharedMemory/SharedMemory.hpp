@@ -21,8 +21,8 @@ private:
     _HWD_();
 public:
     SENSOR_INFO sensor;
-    double motorDesiredTorque[MOTOR_NUM];
-    double motorDesiredPos[MOTOR_NUM];
+    double motorDesiredTorque[MOTOR_NUM_LEG];
+    double motorDesiredPos[MOTOR_NUM_LEG];
     double threadElapsedTime[11];
     bool motorCheckFlag;
     bool motorALLStatus;
@@ -56,15 +56,15 @@ public:
 //    {
 //    } tcp;
 
-    int motorErrorStatus[MOTOR_NUM];
-    int motorTemp[MOTOR_NUM];
-    double motorVoltage[MOTOR_NUM];
-    double motorPosition[MOTOR_NUM];
-    double motorVelocity[MOTOR_NUM];
-    double motorTorque[MOTOR_NUM];
-    double motorDesiredPosition[MOTOR_NUM];
-    double motorDesiredVelocity[MOTOR_NUM];
-    double motorDesiredTorque[MOTOR_NUM];
+    int motorErrorStatus[MOTOR_NUM_LEG];
+    int motorTemp[MOTOR_NUM_LEG];
+    double motorVoltage[MOTOR_NUM_LEG];
+    double motorPosition[MOTOR_NUM_LEG];
+    double motorVelocity[MOTOR_NUM_LEG];
+    double motorTorque[MOTOR_NUM_LEG];
+    double motorDesiredPosition[MOTOR_NUM_LEG];
+    double motorDesiredVelocity[MOTOR_NUM_LEG];
+    double motorDesiredTorque[MOTOR_NUM_LEG];
 
     Eigen::Vector3d globalBasePosition;
     Eigen::Vector3d globalBaseVelocity;
@@ -107,6 +107,32 @@ public:
 
     bool stumbleRecovery;
 
+    // for arm control;
+    bool GadgetRMDStatus;
+    int GadgetRMDState;
+    bool GadgetDXStatus;
+    int GadgetDXState;
+    bool isArmTele;
+    int armFSMState;
+    int LowArmControlState;
+    int armGRPControlMode;
+    int armMotorErrorStatus[MOTOR_NUM_ARM];
+    int armMotorTemp[MOTOR_NUM_ARM];
+    double armMotorVoltage[MOTOR_NUM_ARM];
+    double armMotorPosition[MOTOR_NUM_ARM];
+    double armMotorVelocity[MOTOR_NUM_ARM];
+    double armMotorTorque[MOTOR_NUM_ARM];
+    double armMotorDesiredPosition[MOTOR_NUM_ARM];
+    double armMotorDesiredVelocity[MOTOR_NUM_ARM];
+    double armMotorDesiredTorque[MOTOR_NUM_ARM];
+    Eigen::Vector3d currentEndEffectorPosition;
+    Eigen::Vector3d currentEndEffectorEulerAngle;
+    Eigen::Vector3d currentEndEffectorVelocity;
+    Eigen::Vector3d currentEndEffectorAngularVelocity;
+    double desiredEndEffectorPosition[3];
+    double desiredEndEffectorEulerAngle[3];
+    double desiredTeleOperationLinearVelocity[3];
+    double desiredTeleOperationAngularVelocity[3];
 } SHM, * pSHM;
 
 

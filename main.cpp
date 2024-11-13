@@ -26,6 +26,32 @@ void* receiveRobotStatus_tcp(void* arg);
 void* highController(void* arg);
 void* KeyListener(void* arg);
 
+void printBaseState()
+{
+    printf("(%02d:%02d:%02d) Print base states\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    std::cout << "\t\t\t\tbase velocity in body frame:\n"
+                << "\t\t\t\t\tv_x:   " << sharedMemory->bodyBaseVelocity[0] << "m/s\n"
+                << "\t\t\t\t\tv_y:   " << sharedMemory->bodyBaseVelocity[1] << "m/s\n"
+                << "\t\t\t\t\tw_yaw: " << sharedMemory->bodyBaseAngularVelocity[2] << "rad/s"<< std::endl;
+    std::cout << "\t\t\t\tbase Euler angle:\n"
+                << "\t\t\t\t\troll:  " << sharedMemory->globalBaseEulerAngle[0] << "rad\n"
+                << "\t\t\t\t\tpitch: " << sharedMemory->globalBaseEulerAngle[1] << "rad\n"
+                << "\t\t\t\t\tyaw:   " << sharedMemory->globalBaseEulerAngle[2] << "rad\n"<< std::endl;
+}
+
+void printEndEffectorState()
+{
+    printf("(%02d:%02d:%02d) Print end-effector states\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    std::cout << "\t\t\t\t End effector position in arm base frame:\n"
+                << "\t\t\t\t\tx: "<< sharedMemory->currentEndEffectorPosition[0] << "m\n"
+                << "\t\t\t\t\ty: "<< sharedMemory->currentEndEffectorPosition[1] << "m\n"
+                << "\t\t\t\t\tz: "<< sharedMemory->currentEndEffectorPosition[2] << "m"<< std::endl;
+    std::cout << "\t\t\t\t End effector orientation in arm base frame:\n"
+                << "\t\t\t\t\troll:  " << sharedMemory->currentEndEffectorEulerAngle[0] * 180.0 / 3.141592 << "rad\n"
+                << "\t\t\t\t\tpitch: " << sharedMemory->currentEndEffectorEulerAngle[1] * 180.0 / 3.141592 << "rad\n"
+                << "\t\t\t\t\tyaw:   " << sharedMemory->currentEndEffectorEulerAngle[2] * 180.0 / 3.141592 << "rad\n"<< std::endl;
+}
+
 int main()
 {
     pthread_t UDPthread;
@@ -98,131 +124,87 @@ void* highController(void* arg)
     struct timespec time2;
     std::cout << "[MAIN] Generated Real-Time High Controller Thread : " << 1 / double(threadPeriod) * 1e6 << " Hz" <<std::endl;
 
-    clock_gettime(CLOCK_REALTIME, &time1);
-    bIsReferenceTimeUpdate = true;
-    referenceTime = 0.0;
-    while (true)
+    // Initialize controller
+    commandLists.Start();
+
+    /// CMD: Home up
+    commandLists.HomeUp();
+
+    /// CMD: Trot slow
+    commandLists.TrotSlow();
+
+    /// CMD: Base velocity control in body frame
+    double refBodyVelocity[3];
+
+    refBodyVelocity[0] = 0.1; // reference x-axis velocity in body frame. [m/s]
+    refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
+    refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
+    commandLists.SetBodyVelocity(refBodyVelocity);
+    for(int i = 0 ; i < 5 ; i ++)
     {
-        localTime += dT;
-        clock_gettime(CLOCK_REALTIME, &time2);
-        timeAddus(&time1, threadPeriod);
-
-        // Functions -- start
-        if(sharedMemory->isTCPConnected)
-        {
-            if(prevFSMState != sharedMemory->FSMState)
-            {
-                bIsReferenceTimeUpdate = true;
-            }
-            else
-            {
-                bIsReferenceTimeUpdate = false;
-            }
-            switch(sharedMemory->FSMState)
-            {
-            case FSM_INITIAL:
-                if(bIsReferenceTimeUpdate)
-                {
-                    referenceTime = sharedMemory->localTime + 2;
-                }
-                if(sharedMemory->localTime > referenceTime)
-                {
-                    upORoff = 0;
-                    commandLists.Start();
-                }
-                break;
-            case FSM_READY:
-                if(bIsReferenceTimeUpdate)
-                {
-                    if(upORoff == 0)
-                    {
-                        referenceTime = sharedMemory->localTime + 2;
-                    }
-                    else if (upORoff == 1)
-                    {
-                        referenceTime = sharedMemory->localTime + 0.1;
-                    }
-                }
-                if(sharedMemory->localTime > referenceTime)
-                {
-                    if(upORoff == 0)
-                    {
-                        commandLists.StandUp();
-                    }
-                    else if (upORoff == 1)
-                    {
-                        commandLists.EmergencyStop();
-                    }
-                }
-                break;
-            case FSM_STAND:
-                if(bIsReferenceTimeUpdate)
-                {
-                    referenceTime = sharedMemory->localTime + 0.1;
-                }
-                if(sharedMemory->localTime > referenceTime)
-                {
-                    if(trotORdown == 0)
-                    {
-                        commandLists.TrotSlow();
-                    }
-                    else if(trotORdown == 1)
-                    {
-                        commandLists.SitDown();
-                    }
-                }
-                break;
-            case FSM_TROT_SLOW:
-                if(bIsReferenceTimeUpdate)
-                {
-                    referenceTime = sharedMemory->localTime + 3.0;
-                    trotORdown = 1;
-                }
-
-                commandLists.SetBodyVelocity(0.1, 0.0, 0.0);
-
-                std::cout << "[shared memory] base velocity in body frame (x,y): " << sharedMemory->bodyBaseVelocity[0] << ", " << sharedMemory->bodyBaseVelocity[1] << std::endl;
-                std::cout << "[shared memory] base yaw rate (yaw_dot): " << sharedMemory->bodyBaseAngularVelocity[2] << std::endl;
-                std::cout << "[shared memory] base Euler angle (roll, pitch, yaw): " << sharedMemory->globalBaseEulerAngle[0] << ", " << sharedMemory->globalBaseEulerAngle[1] << ", " << sharedMemory->globalBaseEulerAngle[2] << std::endl;
-
-                if(sharedMemory->localTime > referenceTime)
-                {
-                    commandLists.TrotStop();
-                }
-                break;
-            case FSM_STAND_UP:
-                trotORdown = 0;
-                break;
-            case FSM_SIT_DOWN:
-                upORoff = 1;
-                break;
-            case FSM_EMERGENCY_STOP:
-                if(bIsReferenceTimeUpdate)
-                {
-                    referenceTime = sharedMemory->localTime + 1.0;
-                    trotORdown = 1;
-                }
-                if(sharedMemory->localTime > referenceTime)
-                {
-                    commandLists.Restart();
-                }
-                break;
-            default:
-                commandLists.NoCommand();
-                commandLists.SetBodyVelocity(0, 0, 0);
-                break;
-            }
-            prevFSMState = sharedMemory->FSMState;
-        }
-        else
-        {
-            std::cout<<"waiting TCP connection..."<<std::endl;
-        }
-        // Functions -- end
-        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &time1, NULL);
-        if (timeCmp(&time2, &time1) > 0)
-        {
-            std::cout << "[MAIN] Deadline Miss, High Controller Real-Time Thread : " << timeDifferentMs(&time1, &time2) * 0.001 << " ms" << std::endl;
-        }
+        printBaseState();
+        sleep(1);
     }
+    refBodyVelocity[0] = 0.0; // reference x-axis velocity in body frame. [m/s]
+    refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
+    refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
+    commandLists.SetBodyVelocity(refBodyVelocity);
+    sleep(1);
+
+    /// CMD: Trot stop
+    commandLists.TrotStop();
+
+    /// CMD: Arm goal position control
+    double armGoalPosition[3];
+    double armGoalEulerAngle[3];
+
+    armGoalPosition[0] = 0.50;
+    armGoalPosition[1] = 0.10;
+    armGoalPosition[2] = 0.45;
+    armGoalEulerAngle[0] = 0.0;
+    armGoalEulerAngle[1] = 0.0;
+    armGoalEulerAngle[2] = 0.0;
+    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
+    printEndEffectorState();
+
+    armGoalPosition[1] = -0.20;
+    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
+    printEndEffectorState();
+    commandLists.ArmHome();
+    armGoalPosition[0] = 0.45;
+    armGoalPosition[1] = 0.0;
+    armGoalPosition[2] = 0.35;
+    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
+    printEndEffectorState();
+
+    armGoalEulerAngle[2] = 30 * 3.141592 / 180;
+    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
+    printEndEffectorState();
+
+    armGoalEulerAngle[2] = -30 * 3.141592 / 180;
+    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
+    printEndEffectorState();
+
+    armGoalEulerAngle[1] = 30.0 * 3.141592 / 180;;
+    armGoalEulerAngle[2] = 0.0;
+    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
+    printEndEffectorState();
+
+    armGoalEulerAngle[1] = -30.0 * 3.141592 / 180;;
+    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
+    printEndEffectorState();
+
+    /// CMD: Arm gripper open
+    commandLists.ArmGripperOpen();
+
+    /// CMD: Arm gripper close
+    commandLists.ArmGripperClose();
+
+    commandLists.ArmHome();
+
+    /// CMD: Home down
+    commandLists.HomeDown();
+
+    /// CMD: Emergency stop (Controller stop)
+    commandLists.EmergencyStop();
 }

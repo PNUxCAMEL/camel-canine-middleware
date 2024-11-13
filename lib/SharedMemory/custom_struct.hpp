@@ -8,7 +8,8 @@
 #include<Eigen/Dense>
 #include"JoystickInfo.hpp"
 
-#define MOTOR_NUM 12
+#define MOTOR_NUM_LEG 12
+#define MOTOR_NUM_ARM 7
 #define MAX_COMMAND_DATA 10
 #define MAX_CUSTOM_DATA     20
 
@@ -31,7 +32,7 @@ typedef struct _SENSOR_INFO_
         double imu_offset_pitch;
     } IMU_INFO;
 
-    MOTOR_INFO motor[MOTOR_NUM];
+    MOTOR_INFO motor[MOTOR_NUM_LEG];
     IMU_INFO imu;
 } SENSOR_INFO;
 

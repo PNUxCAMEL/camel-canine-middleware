@@ -180,7 +180,7 @@ void JoystickCommand::mappingStandUp()
 {
     if (mJoystickRearButtons[3] && mJoystickLeftButtons[3])
     {
-        commandLists.StandUp();
+        commandLists.HomeUp();
     }
 }
 
@@ -188,7 +188,7 @@ void JoystickCommand::mappingStandDown()
 {
     if ((mJoystickRearButtons[3] && mJoystickLeftButtons[0]))
     {
-        commandLists.SitDown();
+        commandLists.HomeDown();
     }
 }
 
@@ -223,7 +223,7 @@ void JoystickCommand::mappingJoystick()
         commandVelocity[0] = 0.0;
         commandVelocity[1] = 0.0;
         commandVelocity[2] = 0.0;
-        commandLists.SetBodyVelocity(commandVelocity[0], commandVelocity[1], commandVelocity[2]);
+        commandLists.SetBodyVelocity(commandVelocity);
         break;
     }
     case FSM_TROT_SLOW:
@@ -231,7 +231,7 @@ void JoystickCommand::mappingJoystick()
         commandVelocity[0] = mJoystickLeftAxis[1] * 0.6;
         commandVelocity[1] = -mJoystickLeftAxis[0] * 0.4;
         commandVelocity[2] = -mJoystickRightAxis[0] * 0.65;
-        commandLists.SetBodyVelocity(commandVelocity[0], commandVelocity[1], commandVelocity[2]);
+        commandLists.SetBodyVelocity(commandVelocity);
         break;
     }
     case FSM_TROT_FAST:
@@ -239,7 +239,7 @@ void JoystickCommand::mappingJoystick()
         commandVelocity[0] = mJoystickLeftAxis[1] * 1.0; // 1 m/s
         commandVelocity[1] = -mJoystickLeftAxis[0] * 0.5;
         commandVelocity[2] = -mJoystickRightAxis[0] * 0.65;
-        commandLists.SetBodyVelocity(commandVelocity[0], commandVelocity[1], commandVelocity[2]);
+        commandLists.SetBodyVelocity(commandVelocity);
         break;
     }
     case FSM_OVERLAP_TROT_FAST:
@@ -247,7 +247,7 @@ void JoystickCommand::mappingJoystick()
         commandVelocity[0] = mJoystickLeftAxis[1] * 1.0; // 1 m/s
         commandVelocity[1] = -mJoystickLeftAxis[0] * 0.5;
         commandVelocity[2] = -mJoystickRightAxis[0] * 0.65;
-        commandLists.SetBodyVelocity(commandVelocity[0], commandVelocity[1], commandVelocity[2]);
+        commandLists.SetBodyVelocity(commandVelocity);
         break;
     }
     default:

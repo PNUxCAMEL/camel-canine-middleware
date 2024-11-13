@@ -28,15 +28,29 @@ bool UDPCommunication::open(){
 void UDPCommunication::packageUDPmsg(char* msg)
 {
     SharedMemory* sharedMemory = SharedMemory::getInstance();
+    static int cnt;
+    if (sharedMemory->udp.joyCommand != 0)
+    {
+        cnt++;
+    }
+    if(cnt >= 50){
+        sharedMemory->udp.joyCommand = 0;
+        cnt = 0;
+    }
+
     // header
-    msg[0] = 0xFF; // len: 1
-    msg[1] = 0xFE; // len: 1
-    memcpy(&msg[2], &sharedMemory->udp.joyCommand, sizeof(int8_t)); // len: 1
-    memcpy(&msg[3], sharedMemory->udp.userLinVel.data(), sizeof(double[3])); // len: 24
-    memcpy(&msg[27], sharedMemory->udp.userAngVel.data(), sizeof(double[3])); // len: 24
+    msg[0] = 0xFF;
+    msg[1] = 0xFE;
+    memcpy(&msg[2], &sharedMemory->udp.joyCommand, sizeof(int8_t));
+    memcpy(&msg[3], sharedMemory->udp.userLinVel.data(), sizeof(double[3]));
+    memcpy(&msg[27], sharedMemory->udp.userAngVel.data(), sizeof(double[3]));
+    memcpy(&msg[51], &sharedMemory->desiredEndEffectorPosition, sizeof(double)*3);
+    memcpy(&msg[75], &sharedMemory->desiredEndEffectorEulerAngle, sizeof(double)*3);
+    memcpy(&msg[99], &sharedMemory->desiredTeleOperationLinearVelocity, sizeof(double)*3);
+    memcpy(&msg[123], &sharedMemory->desiredTeleOperationAngularVelocity, sizeof(double)*3);
     // tail
-    msg[51] = 0x00; // len: 1
-    msg[52] = 0x01; // len: 1
+    msg[147] = 0x00;
+    msg[148] = 0x01;
 }
 
 void UDPCommunication::SendData()

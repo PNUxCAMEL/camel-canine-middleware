@@ -16,13 +16,19 @@ public:
     void NoCommand();
     void Start();
     void Restart();
-    void StandUp();
-    void SitDown();
+    void HomeUp();
+    void HomeDown();
     void TrotSlow();
     void TrotStop();
-    void TrotForceStop();
     void EmergencyStop();
-    void SetBodyVelocity(double refVelX, double refVelY, double refVelYaw);
+    void ArmHome();
+    void ArmMove(double* goalPosition, double* goalEulerAngle);
+    void ArmTeleOn();
+    void ArmTeleOff();
+    void ArmGripperOpen();
+    void ArmGripperClose();
+    void SetBodyVelocity(double* refVel);
+    void SetArmTeleoperationVelocity(double* armLinearVelocityRef, double* armAngularVelocityRef);
 
 private:
     SharedMemory* sharedMemory;
@@ -38,10 +44,12 @@ private:
         CMD_TROT_FAST,
         CMD_TROT_OVERLAP,
         CMD_RESTART,
-        CMD_FOOT2WHEEL_CHANGE,
-        CMD_WHEEL2FOOT_CHANGE,
-        CMD_WHEEL_MOVE,
-        CMD_WHEEL_STAND
+        CMD_ARM_HOME,
+        CMD_ARM_MOVE,
+        CMD_ARM_TELE_ON,
+        CMD_ARM_TELE_OFF,
+        CMD_ARM_GRP_OPEN,
+        CMD_ARM_GRP_CLOSE
     };
 };
 
