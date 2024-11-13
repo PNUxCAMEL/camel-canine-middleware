@@ -96,10 +96,21 @@ public:
     void handleMessage(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const joystick_sub* msg) {
         std::cout << "[RECEIVED] Data on channel: " << chan << std::endl;
 
+        double joystick_threshold = 0.3;
+
         // joystick 데이터 출력
         for (int i = 0; i < 4; i++) {
-            std::cout << "joystick[" << i << "]: " << msg->joystick[i] << std::endl;
-            joyStick[i] = msg->joystick[i];
+            std::cout << "original_joystick[" << i << "]: " << msg->joystick[i] << std::endl;
+
+            if(abs(msg->joystick[i]) < joystick_threshold)
+            {
+                joyStick[i] = 0.0;
+            }
+            else
+            {
+                joyStick[i] = msg->joystick[i];
+            }
+//            std::cout << "joystick[" << i << "]: " << joyStick[i] << std::endl;
         }
 
         // 버튼 데이터 출력
@@ -255,7 +266,17 @@ void* receiveLCM(void* arg)
             std::cerr << "[ERROR] LCM handle encountered an issue." << std::endl;
         }
 
-        usleep(10000);
+        if(lc.handleTimeout(2000000) <= 0)
+        {
+            std::cerr << "[ERROR] LCM handle Time Out." << std::endl;
+            joyStick[0] = 0.0;
+            joyStick[1] = 0.0;
+            joyStick[2] = 0.0;
+            joyStick[3] = 0.0;
+            commandLists.EmergencyStop();
+        }
+
+        usleep(2000);
     }
     return nullptr;
 }
