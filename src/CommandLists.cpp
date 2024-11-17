@@ -50,14 +50,12 @@ void CommandLists::TrotSlow()
 
 void CommandLists::TrotStop()
 {
-//    if(sharedMemory->FSMState == FSM_TROT_SLOW)
-//    {
-//        sharedMemory->udp.joyCommand = CMD_TROT_STOP;
-//    }
-//    else
-//    {
-//        sharedMemory->udp.joyCommand = CMD_NO_INPUT;
-//    }
+    double refBodyVelocity[3];
+    refBodyVelocity[0] = 0.0; // reference x-axis velocity in body frame. [m/s]
+    refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
+    refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
+    SetBodyVelocity(refBodyVelocity);
+    sleep(2);
 
     sharedMemory->udp.joyCommand = CMD_TROT_STOP;
     printf("[CMD] : Trot Stop\n");
