@@ -25,6 +25,7 @@ void CommandLists::Restart()
 {
     sharedMemory->udp.joyCommand = CMD_RESTART;
     printf("[CMD] : Recovery\n");
+    sleep(4);
 }
 
 void CommandLists::HomeUp()
@@ -192,14 +193,14 @@ void CommandLists::ArmTeleOff()
 
 void CommandLists::ArmGripperClose()
 {
-    sharedMemory->udp.joyCommand = CMD_ARM_GRP_OPEN;
+    sharedMemory->udp.joyCommand = CMD_ARM_GRP_CLOSE;
     printf("(%02d:%02d:%02d) [CMD] : Arm Gripper Close\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(2);
 }
 
 void CommandLists::ArmGripperOpen()
 {
-    sharedMemory->udp.joyCommand = CMD_ARM_GRP_CLOSE;
+    sharedMemory->udp.joyCommand = CMD_ARM_GRP_OPEN;
     printf("(%02d:%02d:%02d) [CMD] : Arm Gripper Open\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(2);
 }

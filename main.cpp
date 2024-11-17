@@ -124,6 +124,7 @@ void* highController(void* arg)
     struct timespec time2;
     std::cout << "[MAIN] Generated Real-Time High Controller Thread : " << 1 / double(threadPeriod) * 1e6 << " Hz" <<std::endl;
 
+    sleep(3);
     // Initialize controller
     commandLists.Start();
 
