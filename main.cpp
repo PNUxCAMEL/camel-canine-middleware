@@ -132,6 +132,7 @@ void* highController(void* arg)
 
     /// CMD: Trot slow
     commandLists.TrotSlow();
+    sleep(2);
 
     /// CMD: Base velocity control in body frame
     double refBodyVelocity[3];
@@ -146,10 +147,10 @@ void* highController(void* arg)
         sleep(1);
     }
     refBodyVelocity[0] = 0.0; // reference x-axis velocity in body frame. [m/s]
-    refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
+    refBodyVelocity[1] = 0.1; // reference y-axis velocity in body frame. [m/s]
     refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
     commandLists.SetBodyVelocity(refBodyVelocity);
-    sleep(1);
+    sleep(3);
 
     /// CMD: Trot stop
     commandLists.TrotStop();
@@ -207,4 +208,8 @@ void* highController(void* arg)
 
     /// CMD: Emergency stop (Controller stop)
     commandLists.EmergencyStop();
+
+    /// CMD: Restart the controller
+    /// It will shut down the controller in the control PC and restart the controller.
+    commandLists.Restart();
 }
