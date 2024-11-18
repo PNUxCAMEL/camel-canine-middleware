@@ -97,21 +97,20 @@ void* KeyListener(void* arg) {
     fds[0].fd = STDIN_FILENO; // 표준 입력 (키보드)
     fds[0].events = POLLIN;   // 읽기 이벤트 감지
 
-    while (true) {
-        if(sharedMemory->isTCPConnected)
+    while (true)
+    {
+        char ch;
+        read(STDIN_FILENO, &ch, 1); // 키 입력 읽기
+        if (ch == 'e')
         {
-            int ret = poll(fds, 1, 100); // 100ms 타임아웃
-            if (ret > 0 && (fds[0].revents & POLLIN)) {
-                char ch;
-                read(STDIN_FILENO, &ch, 1); // 키 입력 읽기
-                if (ch == 'e') {
-                    std::cout << "'e' key pressed! e-stop" << std::endl;
-                    commandLists.EmergencyStop();
-                }
-            }
+            std::cerr << "[MAIN] 'e' key pressed! e-stop" << std::endl;
+            commandLists.EmergencyStop();
+            sleep(2);
+            std::cerr << "[MAIN] Exit canine-middleware" << std::endl;
+            exit(0);
         }
         tcflush(STDIN_FILENO, TCIFLUSH);
-        usleep(50000); // CPU 사용량을 줄이기 위해 잠시 대기
+        usleep(5000); // CPU 사용량을 줄이기 위해 잠시 대기
     }
 }
 
