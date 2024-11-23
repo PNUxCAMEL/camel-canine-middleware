@@ -21,7 +21,7 @@ public:
     void TrotSlow();
     void TrotStop();
     void EmergencyStop();
-    void SetBodyVelocity(double* refVel);
+    void SetBodyVelocity(double* refLinVel, double* refAngVel);
 
 private:
     SharedMemory* sharedMemory;

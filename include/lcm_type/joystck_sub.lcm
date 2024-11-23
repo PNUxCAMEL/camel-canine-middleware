@@ -1,0 +1,8 @@
+struct joystick_sub {
+    float joystick[4];  // 조이스틱 데이터 배열
+
+    float vr_botton_X;  // 버튼 X 상태
+    float vr_botton_Y;  // 버튼 Y 상태
+    float vr_botton_A;  // 버튼 A 상태
+    float vr_botton_B;  // 버튼 B 상태
+}

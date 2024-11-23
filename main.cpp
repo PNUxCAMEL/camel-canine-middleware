@@ -3,6 +3,7 @@
 //
 #include <poll.h>
 #include <unistd.h>
+#include <lcm/lcm-cpp.hpp>
 
 #include "Setup.hpp"
 #include "CommandLists.hpp"
@@ -10,6 +11,7 @@
 #include "threadGenerator.hpp"
 #include "TCPCommunication.hpp"
 #include "UDPCommunication.hpp"
+#include "lcm_type/joystick_sub.hpp"
 
 SharedMemory* sharedMemory = SharedMemory::getInstance();
 
@@ -25,6 +27,167 @@ void* sendRobotCommand_udp(void* arg);
 void* receiveRobotStatus_tcp(void* arg);
 void* highController(void* arg);
 void* KeyListener(void* arg);
+void* receiveLCM(void* arg);
+
+double refBodyLinearVelocity[3];
+double refBodyAngularVelocity[3];
+
+float bt_X = 0.0;
+float bt_Y = 0.0;
+float bt_A = 0.0;
+float bt_B = 0.0;
+float prev_bt_X = 0.0;
+float prev_bt_Y = 0.0;
+float prev_bt_A = 0.0;
+float prev_bt_B = 0.0;
+float joyStick[4] = {0,};
+
+void checkFSMEmergencyStop()
+{
+    if(prev_bt_Y!=bt_Y)
+    {
+        commandLists.EmergencyStop();
+    }
+}
+
+void checkFSMStandDown()
+{
+    if(prev_bt_X!=bt_X)
+    {
+        commandLists.HomeDown();
+    }
+}
+
+void checkFSMTrotSlow()
+{
+    if(prev_bt_A!=bt_A)
+    {
+        commandLists.TrotSlow();
+    }
+}
+
+void checkFSMCONSTStand()
+{
+    if(prev_bt_B!=bt_B)
+    {
+        commandLists.TrotStop();
+    }
+}
+
+void FSMTrotSlowFunction()
+{
+    refBodyLinearVelocity[0] = joyStick[0] * 0.4;
+    refBodyLinearVelocity[1] = 0.0;
+    refBodyLinearVelocity[2] = 0.0;
+    refBodyAngularVelocity[0] = 0.0;
+    refBodyAngularVelocity[1] = 0.0;
+    refBodyAngularVelocity[2] = joyStick[3] * 0.5;
+    commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+}
+
+void FSMStandFunction()
+{
+    refBodyLinearVelocity[0] = 0.0;
+    refBodyLinearVelocity[1] = 0.0;
+    refBodyLinearVelocity[2] = 0.0;
+    refBodyAngularVelocity[0] = 0.0;
+    refBodyAngularVelocity[1] = joyStick[0] * 0.4;
+    refBodyAngularVelocity[2] = 0.0;
+    commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+}
+
+// JoystickHandler 클래스 정의
+class JoystickHandler {
+public:
+    void handleMessage(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const joystick_sub* msg) {
+        std::cout << "[RECEIVED] Data on channel: " << chan << std::endl;
+
+        double joystick_threshold = 0.3;
+
+        // joystick 데이터 출력
+        for (int i = 0; i < 4; i++) {
+            std::cout << "original_joystick[" << i << "]: " << msg->joystick[i] << std::endl;
+
+            if(abs(msg->joystick[i]) < joystick_threshold)
+            {
+                joyStick[i] = 0.0;
+            }
+            else
+            {
+                joyStick[i] = msg->joystick[i];
+            }
+//            std::cout << "joystick[" << i << "]: " << joyStick[i] << std::endl;
+        }
+
+        // 버튼 데이터 출력
+        std::cout << "vr_botton_X: " << msg->vr_botton_X << std::endl;
+        std::cout << "vr_botton_Y: " << msg->vr_botton_Y << std::endl;
+        std::cout << "vr_botton_A: " << msg->vr_botton_A << std::endl;
+        std::cout << "vr_botton_B: " << msg->vr_botton_B << std::endl;
+        bt_X = msg->vr_botton_X;
+        bt_Y = msg->vr_botton_Y;
+        bt_A = msg->vr_botton_A;
+        bt_B = msg->vr_botton_B;
+        switch(sharedMemory->FSMState)
+        {
+            case FSM_INITIAL:
+            {
+
+                break;
+            }
+            case FSM_EMERGENCY_STOP:
+            {
+                break;
+            }
+            case FSM_READY:
+            {
+                checkFSMEmergencyStop();
+
+                break;
+            }
+            case FSM_STAND_UP:
+            {
+                checkFSMEmergencyStop();
+                break;
+            }
+            case FSM_SIT_DOWN:
+            {
+                checkFSMEmergencyStop();
+                break;
+            }
+            case FSM_STAND:
+            {
+                FSMStandFunction();
+                checkFSMEmergencyStop();
+                checkFSMStandDown();
+                checkFSMTrotSlow();
+                break;
+            }
+            case FSM_TROT_STOP:
+            {
+                checkFSMEmergencyStop();
+                checkFSMCONSTStand();
+                break;
+            }
+            case FSM_TROT_SLOW:
+            {
+                FSMTrotSlowFunction();
+                checkFSMEmergencyStop();
+                checkFSMCONSTStand();
+                break;
+            }
+            default:
+            {
+                checkFSMEmergencyStop();
+                break;
+            }
+        }
+        prev_bt_A = bt_A;
+        prev_bt_B = bt_B;
+        prev_bt_X = bt_X;
+        prev_bt_Y = bt_Y;
+    }
+};
 
 void printBaseState()
 {
@@ -45,11 +208,13 @@ int main()
     pthread_t TCPthread;
     pthread_t HighControlThread;
     pthread_t KeyListenerThread;
+    pthread_t LCMthread;
 
     generateRtThread(HighControlThread, highController, "RT_Controller", 5, 99, NULL);
     generateNrtThread(UDPthread, sendRobotCommand_udp, "UDP_send", 6, NULL);
     generateNrtThread(TCPthread, receiveRobotStatus_tcp, "TCP_receive", 7, NULL);
     generateNrtThread(KeyListenerThread, KeyListener, "key_board", 4, NULL);
+    generateNrtThread(LCMthread, receiveLCM, "LCM_thread", 3, NULL);
 
     while (true)
     {
@@ -107,49 +272,60 @@ void* highController(void* arg)
     double dT = 0.01; // 10Hz Real-time thread
     double localTime = 0.0;
     const long threadPeriod = long(dT * 1e6);
-    struct timespec time1;
-    struct timespec time2;
     std::cout << "[MAIN] Generated Real-Time High Controller Thread : " << 1 / double(threadPeriod) * 1e6 << " Hz" <<std::endl;
 
-    sleep(3);
-    // Initialize controller
-    commandLists.Start();
+    refBodyLinearVelocity[0] = 0.0;
+    refBodyLinearVelocity[1] = 0.0;
+    refBodyLinearVelocity[2] = 0.0;
+    refBodyAngularVelocity[0] = 0.0;
+    refBodyAngularVelocity[1] = 0.0;
+    refBodyAngularVelocity[2] = 0.0;
 
-    /// CMD: Home up
-    commandLists.HomeUp();
-
-    /// CMD: Trot slow
-    commandLists.TrotSlow();
     sleep(2);
-
-    /// CMD: Base velocity control in body frame
-    double refBodyVelocity[3];
-
-    refBodyVelocity[0] = 0.1; // reference x-axis velocity in body frame. [m/s]
-    refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
-    refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
-    commandLists.SetBodyVelocity(refBodyVelocity);
-    for(int i = 0 ; i < 5 ; i ++)
+    commandLists.Start();
+    sleep(4);
+    commandLists.HomeUp();
+    while (true)
     {
-        printBaseState();
-        sleep(1);
+        localTime += dT;
+
+        // Functions -- start
+
+        usleep(10000);
     }
-    refBodyVelocity[0] = 0.0; // reference x-axis velocity in body frame. [m/s]
-    refBodyVelocity[1] = 0.1; // reference y-axis velocity in body frame. [m/s]
-    refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
-    commandLists.SetBodyVelocity(refBodyVelocity);
-    sleep(3);
+}
 
-    /// CMD: Trot stop
-    commandLists.TrotStop();
+void* receiveLCM(void* arg)
+{
+    std::cout << "[MAIN] Generated LCM Communication Thread."<<std::endl;
 
-    /// CMD: Home down
-    commandLists.HomeDown();
+    lcm::LCM lc;
+    if (!lc.good()) {
+        std::cerr << "[ERROR] Unable to initialize LCM." << std::endl;
+        return nullptr;
+    }
+    JoystickHandler handlerObject;  // JoystickHandler 객체 생성
 
-    /// CMD: Emergency stop (Controller stop)
-    commandLists.EmergencyStop();
+    // "ARM_CHANNEL" 채널 구독 설정
+    lc.subscribe("ARM_CHANNEL", &JoystickHandler::handleMessage, &handlerObject);
+    while(true)
+    {
 
-    /// CMD: Restart the controller
-    /// It will shut down the controller in the control PC and restart the controller.
-    commandLists.Restart();
+        if (lc.handle() != 0) {
+            std::cerr << "[ERROR] LCM handle encountered an issue." << std::endl;
+        }
+
+        if(lc.handleTimeout(2000000) <= 0)
+        {
+            std::cerr << "[ERROR] LCM handle Time Out." << std::endl;
+            joyStick[0] = 0.0;
+            joyStick[1] = 0.0;
+            joyStick[2] = 0.0;
+            joyStick[3] = 0.0;
+            commandLists.EmergencyStop();
+        }
+
+        usleep(2000);
+    }
+    return nullptr;
 }

@@ -51,11 +51,11 @@ void CommandLists::TrotSlow()
 
 void CommandLists::TrotStop()
 {
-    double refBodyVelocity[3];
-    refBodyVelocity[0] = 0.0; // reference x-axis velocity in body frame. [m/s]
-    refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
-    refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
-    SetBodyVelocity(refBodyVelocity);
+    double zeros[3];
+    zeros[0] = 0.0;
+    zeros[1] = 0.0;
+    zeros[2] = 0.0;
+    SetBodyVelocity(zeros, zeros);
     sleep(2);
 
     sharedMemory->udp.joyCommand = CMD_TROT_STOP;
@@ -70,13 +70,20 @@ void CommandLists::EmergencyStop()
     sleep(2);
 }
 
-void CommandLists::SetBodyVelocity(double* refVel)
+void CommandLists::SetBodyVelocity(double* refLinearVelocity, double* refAngularVelocity)
 {
-    Eigen::Vector3d refLinVel = Eigen::Vector3d (refVel[0], refVel[1], 0);
-    Eigen::Vector3d refAngVel = Eigen::Vector3d (0, 0, refVel[2]);
+    Eigen::Vector3d refLinVel = Eigen::Vector3d (refLinearVelocity[0], refLinearVelocity[1], 0.0);
+    Eigen::Vector3d refAngVel = Eigen::Vector3d (refAngularVelocity[0], refAngularVelocity[1], refAngularVelocity[2]);
 
     switch (sharedMemory->FSMState)
     {
+    case FSM_STAND:
+        refLinVel = refLinVel.array().max(0.0);
+        refLinVel = refLinVel.array().min(0.0);
+
+        refAngVel = refAngVel.array().max(-0.5);
+        refAngVel = refAngVel.array().min(0.5);
+        break;
     case FSM_TROT_SLOW:
         refLinVel = refLinVel.array().max(-0.8);
         refLinVel = refLinVel.array().min(0.8);

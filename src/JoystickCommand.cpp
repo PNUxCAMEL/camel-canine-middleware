@@ -214,40 +214,51 @@ void JoystickCommand::mappingRestart()
 
 void JoystickCommand::mappingJoystick()
 {
-    double commandVelocity[3];
+    double commandLinearVelocity[3];
+    double commandAngularVelocity[3];
 
     switch (sharedMemory->FSMState)
     {
     case FSM_STAND:
     {
-        commandVelocity[0] = 0.0;
-        commandVelocity[1] = 0.0;
-        commandVelocity[2] = 0.0;
-        commandLists.SetBodyVelocity(commandVelocity);
+        commandLinearVelocity[0] = 0.0;
+        commandLinearVelocity[1] = 0.0;
+        commandLinearVelocity[2] = 0.0;
+
+        commandLists.SetBodyVelocity(commandLinearVelocity, commandAngularVelocity);
         break;
     }
     case FSM_TROT_SLOW:
     {
-        commandVelocity[0] = mJoystickLeftAxis[1] * 0.6;
-        commandVelocity[1] = -mJoystickLeftAxis[0] * 0.4;
-        commandVelocity[2] = -mJoystickRightAxis[0] * 0.65;
-        commandLists.SetBodyVelocity(commandVelocity);
+        commandLinearVelocity[0] = mJoystickLeftAxis[1] * 0.6;
+        commandLinearVelocity[1] = -mJoystickLeftAxis[0] * 0.4;
+        commandLinearVelocity[2] = 0.0;
+        commandAngularVelocity[0] = 0.0;
+        commandAngularVelocity[1] = 0.0;
+        commandAngularVelocity[2] = -mJoystickRightAxis[0] * 0.65;
+        commandLists.SetBodyVelocity(commandLinearVelocity, commandAngularVelocity);
         break;
     }
     case FSM_TROT_FAST:
     {
-        commandVelocity[0] = mJoystickLeftAxis[1] * 1.0; // 1 m/s
-        commandVelocity[1] = -mJoystickLeftAxis[0] * 0.5;
-        commandVelocity[2] = -mJoystickRightAxis[0] * 0.65;
-        commandLists.SetBodyVelocity(commandVelocity);
+        commandLinearVelocity[0] = mJoystickLeftAxis[1] * 1.0; // 1 m/s
+        commandLinearVelocity[1] = -mJoystickLeftAxis[0] * 0.5;
+        commandLinearVelocity[2] = 0.0;
+        commandAngularVelocity[0] = 0.0;
+        commandAngularVelocity[1] = 0.0;
+        commandAngularVelocity[2] = -mJoystickRightAxis[0] * 0.65;
+        commandLists.SetBodyVelocity(commandLinearVelocity, commandAngularVelocity);
         break;
     }
     case FSM_OVERLAP_TROT_FAST:
     {
-        commandVelocity[0] = mJoystickLeftAxis[1] * 1.0; // 1 m/s
-        commandVelocity[1] = -mJoystickLeftAxis[0] * 0.5;
-        commandVelocity[2] = -mJoystickRightAxis[0] * 0.65;
-        commandLists.SetBodyVelocity(commandVelocity);
+        commandLinearVelocity[0] = mJoystickLeftAxis[1] * 1.0; // 1 m/s
+        commandLinearVelocity[1] = -mJoystickLeftAxis[0] * 0.5;
+        commandLinearVelocity[2] = 0.0;
+        commandAngularVelocity[0] = 0.0;
+        commandAngularVelocity[1] = 0.0;
+        commandAngularVelocity[2] = -mJoystickRightAxis[0] * 0.65;
+        commandLists.SetBodyVelocity(commandLinearVelocity, commandAngularVelocity);
         break;
     }
     default:
