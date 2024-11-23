@@ -252,13 +252,108 @@ void* KeyListener(void* arg) {
     while (true) {
         if(sharedMemory->isTCPConnected)
         {
-            int ret = poll(fds, 1, 100); // 100ms 타임아웃
+            int ret = poll(fds, 1, 2000); // 100ms 타임아웃
             if (ret > 0 && (fds[0].revents & POLLIN)) {
                 char ch;
                 read(STDIN_FILENO, &ch, 1); // 키 입력 읽기
-                if (ch == 'e') {
-                    std::cout << "'e' key pressed! e-stop" << std::endl;
-                    commandLists.EmergencyStop();
+                switch (ch)
+                {
+                    case 'e':
+                    {
+                        std::cout << "'e' key pressed! e-stop" << std::endl;
+                        commandLists.EmergencyStop();
+                        break;
+                    }
+                    case 'w':
+                    {
+                        std::cout << "'w' key pressed!" << std::endl;
+                        refBodyLinearVelocity[0] = 0.4;
+                        refBodyLinearVelocity[1] = 0.0;
+                        refBodyLinearVelocity[2] = 0.0;
+                        refBodyAngularVelocity[0] = 0.0;
+                        refBodyAngularVelocity[1] = 0.0;
+                        refBodyAngularVelocity[2] = 0.0;
+                        commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+                        break;
+                    }
+                    case 's':
+                    {
+                        std::cout << "'s' key pressed!" << std::endl;
+                        refBodyLinearVelocity[0] = -0.4;
+                        refBodyLinearVelocity[1] = 0.0;
+                        refBodyLinearVelocity[2] = 0.0;
+                        refBodyAngularVelocity[0] = 0.0;
+                        refBodyAngularVelocity[1] = 0.0;
+                        refBodyAngularVelocity[2] = 0.0;
+                        commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+                        break;
+                    }
+                    case 'a':
+                    {
+                        std::cout << "'a' key pressed!" << std::endl;
+                        refBodyLinearVelocity[0] = 0.0;
+                        refBodyLinearVelocity[1] = 0.4;
+                        refBodyLinearVelocity[2] = 0.0;
+                        refBodyAngularVelocity[0] = 0.0;
+                        refBodyAngularVelocity[1] = 0.0;
+                        refBodyAngularVelocity[2] = 0.0;
+                        commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+                        break;
+                    }
+                    case 'd':
+                    {
+                        std::cout << "'d' key pressed!" << std::endl;
+                        refBodyLinearVelocity[0] = 0.0;
+                        refBodyLinearVelocity[1] = -0.4;
+                        refBodyLinearVelocity[2] = 0.0;
+                        refBodyAngularVelocity[0] = 0.0;
+                        refBodyAngularVelocity[1] = 0.0;
+                        refBodyAngularVelocity[2] = 0.0;
+                        commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+                        break;
+                    }
+                    case 'x':
+                    {
+                        std::cout << "'x' key pressed!" << std::endl;
+                        refBodyLinearVelocity[0] = 0.0;
+                        refBodyLinearVelocity[1] = 0.0;
+                        refBodyLinearVelocity[2] = 0.0;
+                        refBodyAngularVelocity[0] = 0.0;
+                        refBodyAngularVelocity[1] = 0.0;
+                        refBodyAngularVelocity[2] = 0.0;
+                        commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+                        break;
+                    }
+                    case 'z':
+                    {
+                        std::cout << "'z' key pressed!" << std::endl;
+                        refBodyLinearVelocity[0] = 0.0;
+                        refBodyLinearVelocity[1] = 0.0;
+                        refBodyLinearVelocity[2] = 0.0;
+                        refBodyAngularVelocity[0] = 0.0;
+                        refBodyAngularVelocity[1] = 0.0;
+                        refBodyAngularVelocity[2] = 1.0;
+                        commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+                        break;
+                    }
+                    case 'c':
+                    {
+                        std::cout << "'c' key pressed!" << std::endl;
+                        refBodyLinearVelocity[0] = 0.0;
+                        refBodyLinearVelocity[1] = 0.0;
+                        refBodyLinearVelocity[2] = 0.0;
+                        refBodyAngularVelocity[0] = 0.0;
+                        refBodyAngularVelocity[1] = 0.0;
+                        refBodyAngularVelocity[2] = -1.0;
+                        commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+                        break;
+                    }
+                    default:
+                    {
+                        std::cout<<"Pressed invalid key."<<std::endl;
+                        break;
+                    }
+
                 }
             }
         }
@@ -285,6 +380,7 @@ void* highController(void* arg)
     commandLists.Start();
     sleep(4);
     commandLists.HomeUp();
+    commandLists.TrotSlow();
     while (true)
     {
         localTime += dT;
