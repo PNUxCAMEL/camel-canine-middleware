@@ -106,33 +106,6 @@ public:
     double TCP_Duration;
 
     bool stumbleRecovery;
-
-    // for arm control;
-    bool GadgetRMDStatus;
-    int GadgetRMDState;
-    bool GadgetDXStatus;
-    int GadgetDXState;
-    bool isArmTele;
-    int armFSMState;
-    int LowArmControlState;
-    int armGRPControlMode;
-    int armMotorErrorStatus[MOTOR_NUM_ARM];
-    int armMotorTemp[MOTOR_NUM_ARM];
-    double armMotorVoltage[MOTOR_NUM_ARM];
-    double armMotorPosition[MOTOR_NUM_ARM];
-    double armMotorVelocity[MOTOR_NUM_ARM];
-    double armMotorTorque[MOTOR_NUM_ARM];
-    double armMotorDesiredPosition[MOTOR_NUM_ARM];
-    double armMotorDesiredVelocity[MOTOR_NUM_ARM];
-    double armMotorDesiredTorque[MOTOR_NUM_ARM];
-    Eigen::Vector3d currentEndEffectorPosition;
-    Eigen::Vector3d currentEndEffectorEulerAngle;
-    Eigen::Vector3d currentEndEffectorVelocity;
-    Eigen::Vector3d currentEndEffectorAngularVelocity;
-    double desiredEndEffectorPosition[3];
-    double desiredEndEffectorEulerAngle[3];
-    double desiredTeleOperationLinearVelocity[3];
-    double desiredTeleOperationAngularVelocity[3];
 } SHM, * pSHM;
 
 

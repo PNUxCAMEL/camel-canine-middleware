@@ -121,42 +121,4 @@ SharedMemory::SharedMemory()
     isTCPConnected = false;
 
     stumbleRecovery = false;
-
-    // for arm control;
-    GadgetRMDStatus = false;
-    GadgetRMDState = CAN_NO_ACT;
-    GadgetDXStatus = false;
-    GadgetDXState = CAN_NO_ACT;
-    isArmTele = false;
-    armFSMState = 0;
-    LowArmControlState = 0;
-    armGRPControlMode = 0;
-
-    for (int index = 0; index < MOTOR_NUM_ARM; index++)
-    {
-        armMotorErrorStatus[index] = 0.0;
-        armMotorTemp[index] = 0.0;
-        armMotorVoltage[index] = 0.0;;
-        armMotorPosition[index] = 0.0;
-        armMotorVelocity[index] = 0.0;
-        armMotorTorque[index] = 0.0;
-        armMotorDesiredPosition[index] = 0.0;
-        armMotorDesiredVelocity[index] = 0.0;
-        armMotorDesiredTorque[index] = 0.0;
-    }
-
-    currentEndEffectorPosition.setZero();
-    currentEndEffectorEulerAngle.setZero();
-    currentEndEffectorVelocity.setZero();
-    currentEndEffectorAngularVelocity.setZero();
-
-    for (int index = 0; index < 3; index++)
-    {
-        desiredEndEffectorEulerAngle[index] = 0.0;
-        desiredTeleOperationLinearVelocity[index] = 0.0;
-        desiredTeleOperationAngularVelocity[index] = 0.0;
-    }
-    desiredEndEffectorPosition[0] = 0.45;
-    desiredEndEffectorPosition[1] = 0.0;
-    desiredEndEffectorPosition[2] = 0.3;
 }

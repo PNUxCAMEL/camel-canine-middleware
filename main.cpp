@@ -39,19 +39,6 @@ void printBaseState()
                 << "\t\t\t\t\tyaw:   " << sharedMemory->globalBaseEulerAngle[2] << "rad\n"<< std::endl;
 }
 
-void printEndEffectorState()
-{
-    printf("(%02d:%02d:%02d) Print end-effector states\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
-    std::cout << "\t\t\t\t End effector position in arm base frame:\n"
-                << "\t\t\t\t\tx: "<< sharedMemory->currentEndEffectorPosition[0] << "m\n"
-                << "\t\t\t\t\ty: "<< sharedMemory->currentEndEffectorPosition[1] << "m\n"
-                << "\t\t\t\t\tz: "<< sharedMemory->currentEndEffectorPosition[2] << "m"<< std::endl;
-    std::cout << "\t\t\t\t End effector orientation in arm base frame:\n"
-                << "\t\t\t\t\troll:  " << sharedMemory->currentEndEffectorEulerAngle[0] * 180.0 / 3.141592 << "rad\n"
-                << "\t\t\t\t\tpitch: " << sharedMemory->currentEndEffectorEulerAngle[1] * 180.0 / 3.141592 << "rad\n"
-                << "\t\t\t\t\tyaw:   " << sharedMemory->currentEndEffectorEulerAngle[2] * 180.0 / 3.141592 << "rad\n"<< std::endl;
-}
-
 int main()
 {
     pthread_t UDPthread;
@@ -155,54 +142,6 @@ void* highController(void* arg)
 
     /// CMD: Trot stop
     commandLists.TrotStop();
-
-    /// CMD: Arm goal position control
-    double armGoalPosition[3];
-    double armGoalEulerAngle[3];
-
-    armGoalPosition[0] = 0.50;
-    armGoalPosition[1] = 0.10;
-    armGoalPosition[2] = 0.45;
-    armGoalEulerAngle[0] = 0.0;
-    armGoalEulerAngle[1] = 0.0;
-    armGoalEulerAngle[2] = 0.0;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    armGoalPosition[1] = -0.20;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-    commandLists.ArmHome();
-    armGoalPosition[0] = 0.45;
-    armGoalPosition[1] = 0.0;
-    armGoalPosition[2] = 0.35;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    armGoalEulerAngle[2] = 30 * 3.141592 / 180;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    armGoalEulerAngle[2] = -30 * 3.141592 / 180;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    armGoalEulerAngle[1] = 30.0 * 3.141592 / 180;;
-    armGoalEulerAngle[2] = 0.0;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    armGoalEulerAngle[1] = -30.0 * 3.141592 / 180;;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    /// CMD: Arm gripper open
-    commandLists.ArmGripperOpen();
-
-    /// CMD: Arm gripper close
-    commandLists.ArmGripperClose();
-
-    commandLists.ArmHome();
 
     /// CMD: Home down
     commandLists.HomeDown();
