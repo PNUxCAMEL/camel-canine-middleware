@@ -42,6 +42,8 @@ float prev_bt_A = 0.0;
 float prev_bt_B = 0.0;
 float joyStick[4] = {0,};
 
+bool bTeleControl = true;
+
 void checkFSMEmergencyStop()
 {
     if(prev_bt_Y!=bt_Y)
@@ -76,13 +78,16 @@ void checkFSMCONSTStand()
 
 void FSMTrotSlowFunction()
 {
-    refBodyLinearVelocity[0] = joyStick[0] * 0.4;
-    refBodyLinearVelocity[1] = 0.0;
-    refBodyLinearVelocity[2] = 0.0;
-    refBodyAngularVelocity[0] = 0.0;
-    refBodyAngularVelocity[1] = 0.0;
-    refBodyAngularVelocity[2] = joyStick[3] * 0.5;
-    commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+    if (bTeleControl)
+    {
+        refBodyLinearVelocity[0] = joyStick[0] * 0.4;
+        refBodyLinearVelocity[1] = 0.0;
+        refBodyLinearVelocity[2] = 0.0;
+        refBodyAngularVelocity[0] = 0.0;
+        refBodyAngularVelocity[1] = 0.0;
+        refBodyAngularVelocity[2] = joyStick[3] * 0.5;
+        commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
+    }
 }
 
 void FSMStandFunction()
@@ -370,6 +375,20 @@ void* KeyListener(void* arg) {
                     {
                         std::cout << "'h' key pressed!" << std::endl;
                         commandLists.HomeUp();
+                        break;
+                    }
+                    case 'f':
+                    {
+                        std::cout << "'f' key pressed!" << std::endl;
+                        std::cout << "Get control authority" << std::endl;
+                        bTeleControl =  false;
+                        break;
+                    }
+                    case 'g':
+                    {
+                        std::cout << "'g' key pressed!" << std::endl;
+                        std::cout << "Release control authority" << std::endl;
+                        bTeleControl =  true;
                         break;
                     }
                     default:
