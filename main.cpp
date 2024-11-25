@@ -348,6 +348,30 @@ void* KeyListener(void* arg) {
                         commandLists.SetBodyVelocity(refBodyLinearVelocity,refBodyAngularVelocity);
                         break;
                     }
+                    case '1':
+                    {
+                        std::cout << "'1' key pressed!" << std::endl;
+                        commandLists.TrotSlow();
+                        break;
+                    }
+                    case '2':
+                    {
+                        std::cout << "'2' key pressed!" << std::endl;
+                        commandLists.TrotStop();
+                        break;
+                    }
+                    case 'r':
+                    {
+                        std::cout << "'r' key pressed!" << std::endl;
+                        commandLists.HomeDown();
+                        break;
+                    }
+                    case 'h':
+                    {
+                        std::cout << "'h' key pressed!" << std::endl;
+                        commandLists.HomeUp();
+                        break;
+                    }
                     default:
                     {
                         std::cout<<"Pressed invalid key."<<std::endl;
@@ -380,7 +404,7 @@ void* highController(void* arg)
     commandLists.Start();
     sleep(4);
     commandLists.HomeUp();
-    commandLists.TrotSlow();
+
     while (true)
     {
         localTime += dT;
