@@ -46,7 +46,7 @@ bool bTeleControl = true;
 
 void checkFSMEmergencyStop()
 {
-    if(prev_bt_Y!=bt_Y)
+    if((bt_Y - prev_bt_Y) > 0.5)
     {
         commandLists.EmergencyStop();
     }
@@ -54,7 +54,7 @@ void checkFSMEmergencyStop()
 
 void checkFSMStandDown()
 {
-    if(prev_bt_X!=bt_X)
+    if((bt_X - prev_bt_X) > 0.5)
     {
         commandLists.HomeDown();
     }
@@ -62,7 +62,7 @@ void checkFSMStandDown()
 
 void checkFSMTrotSlow()
 {
-    if(prev_bt_A!=bt_A)
+    if((bt_A - prev_bt_A) > 0.5)
     {
         commandLists.TrotSlow();
     }
@@ -70,7 +70,7 @@ void checkFSMTrotSlow()
 
 void checkFSMCONSTStand()
 {
-    if(prev_bt_B!=bt_B)
+    if((bt_B - prev_bt_B) > 0.5)
     {
         commandLists.TrotStop();
     }
