@@ -159,4 +159,12 @@ SharedMemory::SharedMemory()
     desiredEndEffectorPosition[0] = 0.45;
     desiredEndEffectorPosition[1] = 0.0;
     desiredEndEffectorPosition[2] = 0.3;
+
+    lidarData.scanSize = 0;
+
+    for (int index = 0; index < 8192; index++)
+    {
+        lidarData.scanAngle[index] = 0.0;
+        lidarData.scanDistance[index] = 0.0;
+    }
 }

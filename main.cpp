@@ -10,6 +10,7 @@
 #include "threadGenerator.hpp"
 #include "TCPCommunication.hpp"
 #include "UDPCommunication.hpp"
+#include "RPLidarA1.hpp"
 
 SharedMemory* sharedMemory = SharedMemory::getInstance();
 
@@ -19,6 +20,7 @@ void* sendRobotCommand_udp(void* arg);
 void* receiveRobotStatus_tcp(void* arg);
 void* highController(void* arg);
 void* KeyListener(void* arg);
+void* receiveLidarData(void* arg);
 
 void printBaseState()
 {
@@ -52,8 +54,10 @@ int main()
     pthread_t TCPthread;
     pthread_t HighControlThread;
     pthread_t KeyListenerThread;
+    pthread_t LidarThread;
 
-    generateRtThread(HighControlThread, highController, "RT_Controller", 5, 99, NULL);
+    generateRtThread(LidarThread, receiveLidarData, "lidar", 1, 99, NULL);
+    generateRtThread(HighControlThread, highController, "RT_Controller", 5, 95, NULL);
     generateNrtThread(UDPthread, sendRobotCommand_udp, "UDP_send", 6, NULL);
     generateNrtThread(TCPthread, receiveRobotStatus_tcp, "TCP_receive", 7, NULL);
     generateNrtThread(KeyListenerThread, KeyListener, "key_board", 4, NULL);
@@ -105,6 +109,18 @@ void* KeyListener(void* arg) {
         }
         tcflush(STDIN_FILENO, TCIFLUSH);
         usleep(5000); // CPU 사용량을 줄이기 위해 잠시 대기
+    }
+}
+
+void* receiveLidarData(void* arg)
+{
+    std::cout << "[MAIN] Generated Lidar Thread." <<std::endl;
+    RPLidarA1 rplidar;
+    rplidar.Initialize();
+
+    while (true)
+    {
+        rplidar.ReadLidarPoint();
     }
 }
 

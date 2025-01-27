@@ -128,4 +128,11 @@ typedef struct _STAIR_KEY_FRAME_
     Eigen::Vector3d bodyBase2FootDesiredPosition[4];
 } STAIR_KEY_FRAME, * pSTAIR_KEY_FRAME;
 
+typedef struct _LIDAR_DATA_
+{
+    int scanSize;
+    double scanDistance[8192];
+    double scanAngle[8192];
+} LIDAR_DATA, * pLIDAR_DATA;
+
 #endif //RBCANINE_CUSTOM_STRUCT_HPP

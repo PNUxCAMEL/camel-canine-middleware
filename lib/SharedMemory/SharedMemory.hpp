@@ -52,10 +52,6 @@ public:
 
     double localTime;
 
-//    struct
-//    {
-//    } tcp;
-
     int motorErrorStatus[MOTOR_NUM_LEG];
     int motorTemp[MOTOR_NUM_LEG];
     double motorVoltage[MOTOR_NUM_LEG];
@@ -133,6 +129,8 @@ public:
     double desiredEndEffectorEulerAngle[3];
     double desiredTeleOperationLinearVelocity[3];
     double desiredTeleOperationAngularVelocity[3];
+
+    LIDAR_DATA lidarData;
 } SHM, * pSHM;
 
 
