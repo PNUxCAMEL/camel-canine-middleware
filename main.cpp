@@ -15,12 +15,6 @@ SharedMemory* sharedMemory = SharedMemory::getInstance();
 
 CommandLists commandLists;
 
-double referenceTime;
-bool bIsReferenceTimeUpdate;
-int prevFSMState = 1000;
-int upORoff = 0; // 0: up, 1: off
-int trotORdown = 0; //0: trot, 1: down
-
 void* sendRobotCommand_udp(void* arg);
 void* receiveRobotStatus_tcp(void* arg);
 void* highController(void* arg);
