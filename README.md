@@ -4,7 +4,21 @@ Welcome to the Canine Middleware Project! This project is designed to help you c
 
 ## 📦 Dependencies
 
-- **Eigen3**: Make sure you have Eigen3 installed to ensure proper functionality of the project.
+- **Eigen3**
+  ```
+  sudo apt-get install libeigen3-dev
+  ```
+- **RPLidar SDK**
+   ```
+   cd ~/Library
+   git clone https://github.com/Slamtec/rplidar_sdk.git
+   cd rplidar_sdk
+   make
+    ```
+- **Lib Boost**
+  ```
+  sudo apt-get install libboost-all-dev
+  ```
 
 ## 🚀 How to Use
 
