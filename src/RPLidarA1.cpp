@@ -273,16 +273,18 @@ void RPLidarA1::ReadLidarPoint()
             //        nodes[pos].dist_mm_q2 / 4.0f,
             //        nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT);
             int quality = nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT;
-            if (quality == 0)
-            {
-                data_idx--;
-                sharedMemory->lidarData.scanSize--;
-            }
-            else
-            {
-                sharedMemory->lidarData.scanAngle[data_idx] = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
-                sharedMemory->lidarData.scanDistance[data_idx] = nodes[pos].dist_mm_q2 / 4.0f;
-            }
+            // if (quality == 0)
+            // {
+            //     data_idx--;
+            //     sharedMemory->lidarData.scanSize--;
+            // }
+            // else
+            // {
+            //     sharedMemory->lidarData.scanAngle[data_idx] = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
+            //     sharedMemory->lidarData.scanDistance[data_idx] = nodes[pos].dist_mm_q2 / 4.0f / 1000.0f;
+            // }
+            sharedMemory->lidarData.scanAngle[data_idx] = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
+            sharedMemory->lidarData.scanDistance[data_idx] = nodes[pos].dist_mm_q2 / 4.0f / 1000.0f;
             data_idx++;
         }
         // std::cout << "total num. of point : " << count << std::endl;
@@ -292,6 +294,8 @@ void RPLidarA1::ReadLidarPoint()
         {
             // std::cout<<"theta : "<<sharedMemory->lidarData.scanAngle[pos]<<"\tDist : "<<sharedMemory->lidarData.scanDistance[pos]<<std::endl;
         }
+        std::cout<<"theta : "<<sharedMemory->lidarData.scanAngle[0]<<"\tDist : "<<sharedMemory->lidarData.scanDistance[0]<<std::endl;
+
 
         mPrevTime = mCurrentTime;
     }
