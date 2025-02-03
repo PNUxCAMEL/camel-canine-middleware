@@ -133,13 +133,13 @@ void CommandLists::ArmMove(double* goalPosition, double* goalEulerAngle)
     goalEulerAngleLimit[2][0] = -45 * 3.141592 / 180.0;// yaw angle lower limit
     goalEulerAngleLimit[2][1] = 45 * 3.141592 / 180.0;// yaw angle upper limit
 
-    sharedMemory->desiredEndEffectorPosition[0] = fmin(fmax(goalPosition[0], goalPositionLimit[0][0]), goalPositionLimit[0][1]);
-    sharedMemory->desiredEndEffectorPosition[1] = fmin(fmax(goalPosition[1], goalPositionLimit[1][0]), goalPositionLimit[1][1]);
-    sharedMemory->desiredEndEffectorPosition[2] = fmin(fmax(goalPosition[2], goalPositionLimit[2][0]), goalPositionLimit[2][1]);
+    sharedMemory->udp.desiredEndEffectorPosition[0] = fmin(fmax(goalPosition[0], goalPositionLimit[0][0]), goalPositionLimit[0][1]);
+    sharedMemory->udp.desiredEndEffectorPosition[1] = fmin(fmax(goalPosition[1], goalPositionLimit[1][0]), goalPositionLimit[1][1]);
+    sharedMemory->udp.desiredEndEffectorPosition[2] = fmin(fmax(goalPosition[2], goalPositionLimit[2][0]), goalPositionLimit[2][1]);
 
-    sharedMemory->desiredEndEffectorEulerAngle[0] = fmin(fmax(goalEulerAngle[0], goalEulerAngleLimit[0][0]), goalEulerAngleLimit[0][1]);
-    sharedMemory->desiredEndEffectorEulerAngle[1] = fmin(fmax(goalEulerAngle[1], goalEulerAngleLimit[1][0]), goalEulerAngleLimit[1][1]);
-    sharedMemory->desiredEndEffectorEulerAngle[2] = fmin(fmax(goalEulerAngle[2], goalEulerAngleLimit[2][0]), goalEulerAngleLimit[2][1]);
+    sharedMemory->udp.desiredEndEffectorEulerAngle[0] = fmin(fmax(goalEulerAngle[0], goalEulerAngleLimit[0][0]), goalEulerAngleLimit[0][1]);
+    sharedMemory->udp.desiredEndEffectorEulerAngle[1] = fmin(fmax(goalEulerAngle[1], goalEulerAngleLimit[1][0]), goalEulerAngleLimit[1][1]);
+    sharedMemory->udp.desiredEndEffectorEulerAngle[2] = fmin(fmax(goalEulerAngle[2], goalEulerAngleLimit[2][0]), goalEulerAngleLimit[2][1]);
 
     sharedMemory->udp.joyCommand = CMD_ARM_MOVE;
     printf("(%02d:%02d:%02d) [CMD] : Arm Move\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
@@ -169,12 +169,12 @@ void CommandLists::SetArmTeleoperationVelocity(double* armLinearVelocityRef, dou
             break;
     }
 
-    sharedMemory->desiredTeleOperationLinearVelocity[0] = fmin(fmax(armLinearVelocityRef[0], -armLinearVelocityLimit[0]), armLinearVelocityLimit[0]);
-    sharedMemory->desiredTeleOperationLinearVelocity[1] = fmin(fmax(armLinearVelocityRef[1], -armLinearVelocityLimit[1]), armLinearVelocityLimit[1]);
-    sharedMemory->desiredTeleOperationLinearVelocity[2] = fmin(fmax(armLinearVelocityRef[2], -armLinearVelocityLimit[2]), armLinearVelocityLimit[2]);
-    sharedMemory->desiredTeleOperationAngularVelocity[0] = fmin(fmax(armAngularVelocityRef[0], -armAngularVelocityLimit[0]), armAngularVelocityLimit[0]);
-    sharedMemory->desiredTeleOperationAngularVelocity[1] = fmin(fmax(armAngularVelocityRef[1], -armAngularVelocityLimit[1]), armAngularVelocityLimit[1]);
-    sharedMemory->desiredTeleOperationAngularVelocity[2] = fmin(fmax(armAngularVelocityRef[2], -armAngularVelocityLimit[2]), armAngularVelocityLimit[2]);
+    sharedMemory->udp.desiredTeleOperationLinearVelocity[0] = fmin(fmax(armLinearVelocityRef[0], -armLinearVelocityLimit[0]), armLinearVelocityLimit[0]);
+    sharedMemory->udp.desiredTeleOperationLinearVelocity[1] = fmin(fmax(armLinearVelocityRef[1], -armLinearVelocityLimit[1]), armLinearVelocityLimit[1]);
+    sharedMemory->udp.desiredTeleOperationLinearVelocity[2] = fmin(fmax(armLinearVelocityRef[2], -armLinearVelocityLimit[2]), armLinearVelocityLimit[2]);
+    sharedMemory->udp.desiredTeleOperationAngularVelocity[0] = fmin(fmax(armAngularVelocityRef[0], -armAngularVelocityLimit[0]), armAngularVelocityLimit[0]);
+    sharedMemory->udp.desiredTeleOperationAngularVelocity[1] = fmin(fmax(armAngularVelocityRef[1], -armAngularVelocityLimit[1]), armAngularVelocityLimit[1]);
+    sharedMemory->udp.desiredTeleOperationAngularVelocity[2] = fmin(fmax(armAngularVelocityRef[2], -armAngularVelocityLimit[2]), armAngularVelocityLimit[2]);
 }
 
 void CommandLists::ArmTeleOn()

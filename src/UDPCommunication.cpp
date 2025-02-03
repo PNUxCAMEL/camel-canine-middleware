@@ -44,10 +44,10 @@ void UDPCommunication::packageUDPmsg(char* msg)
     memcpy(&msg[2], &sharedMemory->udp.joyCommand, sizeof(int8_t));
     memcpy(&msg[3], sharedMemory->udp.userLinVel.data(), sizeof(double[3]));
     memcpy(&msg[27], sharedMemory->udp.userAngVel.data(), sizeof(double[3]));
-    memcpy(&msg[51], &sharedMemory->desiredEndEffectorPosition, sizeof(double)*3);
-    memcpy(&msg[75], &sharedMemory->desiredEndEffectorEulerAngle, sizeof(double)*3);
-    memcpy(&msg[99], &sharedMemory->desiredTeleOperationLinearVelocity, sizeof(double)*3);
-    memcpy(&msg[123], &sharedMemory->desiredTeleOperationAngularVelocity, sizeof(double)*3);
+    memcpy(&msg[51], &sharedMemory->udp.desiredEndEffectorPosition, sizeof(double)*3);
+    memcpy(&msg[75], &sharedMemory->udp.desiredEndEffectorEulerAngle, sizeof(double)*3);
+    memcpy(&msg[99], &sharedMemory->udp.desiredTeleOperationLinearVelocity, sizeof(double)*3);
+    memcpy(&msg[123], &sharedMemory->udp.desiredTeleOperationAngularVelocity, sizeof(double)*3);
     // tail
     msg[147] = 0x00;
     msg[148] = 0x01;

@@ -125,10 +125,6 @@ public:
     Eigen::Vector3d currentEndEffectorEulerAngle;
     Eigen::Vector3d currentEndEffectorVelocity;
     Eigen::Vector3d currentEndEffectorAngularVelocity;
-    double desiredEndEffectorPosition[3];
-    double desiredEndEffectorEulerAngle[3];
-    double desiredTeleOperationLinearVelocity[3];
-    double desiredTeleOperationAngularVelocity[3];
 
     LIDAR_DATA lidarData;
 } SHM, * pSHM;

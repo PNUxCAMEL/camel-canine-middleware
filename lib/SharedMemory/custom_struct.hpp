@@ -53,6 +53,10 @@ typedef struct _UDP_STRUCT_
     Eigen::Vector3d userLinVel;
     Eigen::Vector3d userAngVel;
     int8_t joyCommand;
+    double desiredEndEffectorPosition[3];
+    double desiredEndEffectorEulerAngle[3];
+    double desiredTeleOperationLinearVelocity[3];
+    double desiredTeleOperationAngularVelocity[3];
 } UDP_STRUCT, * pUDP_STRUCT;
 
 typedef struct _ROBOT_COMMAND_

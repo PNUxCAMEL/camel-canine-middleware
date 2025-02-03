@@ -54,6 +54,15 @@ SharedMemory::SharedMemory()
     udp.joyCommand = int8_t(0);
     udp.userAngVel.setZero();
     udp.userLinVel.setZero();
+    for (int index = 0; index < 3; index++)
+    {
+        udp.desiredEndEffectorEulerAngle[index] = 0.0;
+        udp.desiredTeleOperationLinearVelocity[index] = 0.0;
+        udp.desiredTeleOperationAngularVelocity[index] = 0.0;
+    }
+    udp.desiredEndEffectorPosition[0] = 0.45;
+    udp.desiredEndEffectorPosition[1] = 0.0;
+    udp.desiredEndEffectorPosition[2] = 0.3;
 
     for (int i = 0; i < MPC_HORIZON * 4; i++)
     {
@@ -149,16 +158,6 @@ SharedMemory::SharedMemory()
     currentEndEffectorEulerAngle.setZero();
     currentEndEffectorVelocity.setZero();
     currentEndEffectorAngularVelocity.setZero();
-
-    for (int index = 0; index < 3; index++)
-    {
-        desiredEndEffectorEulerAngle[index] = 0.0;
-        desiredTeleOperationLinearVelocity[index] = 0.0;
-        desiredTeleOperationAngularVelocity[index] = 0.0;
-    }
-    desiredEndEffectorPosition[0] = 0.45;
-    desiredEndEffectorPosition[1] = 0.0;
-    desiredEndEffectorPosition[2] = 0.3;
 
     lidarData.scanSize = 0;
 
