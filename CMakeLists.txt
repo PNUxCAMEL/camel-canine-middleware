@@ -4,7 +4,11 @@ project(canine_middleware)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+find_package(ament_cmake REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(canine_msgs REQUIRED)
 
 set(RPLIDAR_INCLUDE_PATH "$ENV{HOME}/Library/rplidar_sdk/sdk/include")
 set(RPLIDAR_LIB "$ENV{HOME}/Library/rplidar_sdk/output/Linux/Release/libsl_lidar_sdk.a")
@@ -19,7 +23,9 @@ add_executable(${PROJECT_NAME}
         src/UDPCommunication.cpp
         src/CommandLists.cpp
         src/RPLidarA1.cpp
+        src/ROSCommunication.cpp
 )
+
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         include
@@ -27,9 +33,16 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-        PUBLIC
         threadGenerator
         SharedMemory
         Eigen3::Eigen
         ${RPLIDAR_LIB}
 )
+
+ament_target_dependencies(${PROJECT_NAME}
+        rclcpp
+        geometry_msgs
+        canine_msgs
+)
+
+ament_package()

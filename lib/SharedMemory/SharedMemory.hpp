@@ -40,6 +40,7 @@ private:
 public:
     // For UI
     UDP_STRUCT udp;
+    UDP_STRUCT rosCommand;
 
     std::string robotAddress;
 

@@ -11,6 +11,7 @@
 #include "TCPCommunication.hpp"
 #include "UDPCommunication.hpp"
 #include "RPLidarA1.hpp"
+#include "ROSCommunication.hpp"
 
 SharedMemory* sharedMemory = SharedMemory::getInstance();
 
@@ -48,7 +49,7 @@ void printEndEffectorState()
                 << "\t\t\t\t\tyaw:   " << sharedMemory->currentEndEffectorEulerAngle[2] * 180.0 / 3.141592 << "deg\n"<< std::endl;
 }
 
-int main()
+int main(int argc, char** argv)
 {
     pthread_t UDPthread;
     pthread_t TCPthread;
@@ -62,10 +63,16 @@ int main()
     generateNrtThread(TCPthread, receiveRobotStatus_tcp, "TCP_receive", 7, NULL);
     generateNrtThread(KeyListenerThread, KeyListener, "key_board", 4, NULL);
 
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<ROSCommunication>());
+    rclcpp::shutdown();
+
     while (true)
     {
         sleep(10000);
     }
+
+    return 0;
 }
 
 void* sendRobotCommand_udp(void* arg)

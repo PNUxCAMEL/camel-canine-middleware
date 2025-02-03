@@ -64,6 +64,19 @@ SharedMemory::SharedMemory()
     udp.desiredEndEffectorPosition[1] = 0.0;
     udp.desiredEndEffectorPosition[2] = 0.3;
 
+    rosCommand.joyCommand = int8_t(0);
+    rosCommand.userAngVel.setZero();
+    rosCommand.userLinVel.setZero();
+    for (int index = 0; index < 3; index++)
+    {
+        rosCommand.desiredEndEffectorEulerAngle[index] = 0.0;
+        rosCommand.desiredTeleOperationLinearVelocity[index] = 0.0;
+        rosCommand.desiredTeleOperationAngularVelocity[index] = 0.0;
+    }
+    rosCommand.desiredEndEffectorPosition[0] = 0.45;
+    rosCommand.desiredEndEffectorPosition[1] = 0.0;
+    rosCommand.desiredEndEffectorPosition[2] = 0.3;
+
     for (int i = 0; i < MPC_HORIZON * 4; i++)
     {
         gaitTable[i] = 1;
