@@ -1,0 +1,7 @@
+float64[] reference_base_velocity
+float64 reference_base_yaw_velocity
+int8 command
+float64[] reference_arm_position
+float64[] reference_arm_euler_angle
+float64[] reference_arm_tele_operation_linear_vel
+float64[] reference_arm_tele_operation_angular_vel
