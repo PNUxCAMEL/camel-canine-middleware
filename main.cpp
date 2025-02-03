@@ -30,9 +30,9 @@ void printBaseState()
                 << "\t\t\t\t\tv_y:   " << sharedMemory->bodyBaseVelocity[1] << "m/s\n"
                 << "\t\t\t\t\tw_yaw: " << sharedMemory->bodyBaseAngularVelocity[2] << "rad/s"<< std::endl;
     std::cout << "\t\t\t\tbase Euler angle:\n"
-                << "\t\t\t\t\troll:  " << sharedMemory->globalBaseEulerAngle[0] << "rad\n"
-                << "\t\t\t\t\tpitch: " << sharedMemory->globalBaseEulerAngle[1] << "rad\n"
-                << "\t\t\t\t\tyaw:   " << sharedMemory->globalBaseEulerAngle[2] << "rad\n"<< std::endl;
+                << "\t\t\t\t\troll:  " << sharedMemory->globalBaseEulerAngle[0] * 180.0 / 3.141592 << "deg\n"
+                << "\t\t\t\t\tpitch: " << sharedMemory->globalBaseEulerAngle[1] * 180.0 / 3.141592 << "deg\n"
+                << "\t\t\t\t\tyaw:   " << sharedMemory->globalBaseEulerAngle[2] * 180.0 / 3.141592 << "deg\n"<< std::endl;
 }
 
 void printEndEffectorState()
@@ -43,9 +43,9 @@ void printEndEffectorState()
                 << "\t\t\t\t\ty: "<< sharedMemory->currentEndEffectorPosition[1] << "m\n"
                 << "\t\t\t\t\tz: "<< sharedMemory->currentEndEffectorPosition[2] << "m"<< std::endl;
     std::cout << "\t\t\t\t End effector orientation in arm base frame:\n"
-                << "\t\t\t\t\troll:  " << sharedMemory->currentEndEffectorEulerAngle[0] * 180.0 / 3.141592 << "rad\n"
-                << "\t\t\t\t\tpitch: " << sharedMemory->currentEndEffectorEulerAngle[1] * 180.0 / 3.141592 << "rad\n"
-                << "\t\t\t\t\tyaw:   " << sharedMemory->currentEndEffectorEulerAngle[2] * 180.0 / 3.141592 << "rad\n"<< std::endl;
+                << "\t\t\t\t\troll:  " << sharedMemory->currentEndEffectorEulerAngle[0] * 180.0 / 3.141592 << "deg\n"
+                << "\t\t\t\t\tpitch: " << sharedMemory->currentEndEffectorEulerAngle[1] * 180.0 / 3.141592 << "deg\n"
+                << "\t\t\t\t\tyaw:   " << sharedMemory->currentEndEffectorEulerAngle[2] * 180.0 / 3.141592 << "deg\n"<< std::endl;
 }
 
 int main()
