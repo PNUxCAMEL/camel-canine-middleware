@@ -51,6 +51,26 @@ private:
         CMD_ARM_GRP_OPEN,
         CMD_ARM_GRP_CLOSE
     };
+
+    enum ROS_COMMAND
+    {
+        ROS_CMD_NO_INPUT,
+        ROS_CMD_START,
+        ROS_CMD_EMERGENCY_STOP,
+        ROS_CMD_STAND_UP,
+        ROS_CMD_SIT_DOWN,
+        ROS_CMD_TROT_STOP,
+        ROS_CMD_TROT_SLOW,
+        ROS_CMD_TROT_FAST,
+        ROS_CMD_TROT_OVERLAP,
+        ROS_CMD_RESTART,
+        ROS_CMD_ARM_HOME,
+        ROS_CMD_ARM_MOVE,
+        ROS_CMD_ARM_TELE_ON,
+        ROS_CMD_ARM_TELE_OFF,
+        ROS_CMD_ARM_GRP_OPEN,
+        ROS_CMD_ARM_GRP_CLOSE
+    };
 };
 
 
