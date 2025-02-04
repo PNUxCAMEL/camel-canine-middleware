@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     pthread_t LidarThread;
 
     generateRtThread(LidarThread, receiveLidarData, "lidar", 1, 99, NULL);
-    generateRtThread(HighControlThread, highController, "RT_Controller", 5, 95, NULL);
+    generateNrtThread(HighControlThread, highController, "highController", 5, NULL);
     generateNrtThread(UDPthread, sendRobotCommand_udp, "UDP_send", 6, NULL);
     generateNrtThread(TCPthread, receiveRobotStatus_tcp, "TCP_receive", 7, NULL);
     generateNrtThread(KeyListenerThread, KeyListener, "key_board", 4, NULL);
@@ -133,100 +133,159 @@ void* receiveLidarData(void* arg)
 
 void* highController(void* arg)
 {
-    double dT = 0.01; // 10Hz Real-time thread
-    double localTime = 0.0;
+    double dT = 0.05; // 20Hz Real-time thread
     const long threadPeriod = long(dT * 1e6);
-    struct timespec time1;
-    struct timespec time2;
     std::cout << "[MAIN] Generated Real-Time High Controller Thread : " << 1 / double(threadPeriod) * 1e6 << " Hz" <<std::endl;
-
-    sleep(3);
-    // Initialize controller
-    commandLists.Start();
-
-    /// CMD: Home up
-    commandLists.HomeUp();
-
-    /// CMD: Trot slow
-    commandLists.TrotSlow();
-    sleep(2);
-
-    /// CMD: Base velocity control in body frame
-    double refBodyVelocity[3];
-
-    refBodyVelocity[0] = 0.1; // reference x-axis velocity in body frame. [m/s]
-    refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
-    refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
-    commandLists.SetBodyVelocity(refBodyVelocity);
-    for(int i = 0 ; i < 5 ; i ++)
+    int prevRosCMD = -1;
+    while (true)
     {
-        printBaseState();
-        sleep(1);
+        int incomingRosCMD = sharedMemory->rosCommand.joyCommand;
+        if (incomingRosCMD != prevRosCMD)
+        {
+            switch (incomingRosCMD)
+            {
+                case CommandLists::ROS_COMMAND::ROS_CMD_NO_INPUT:
+                {
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_START:
+                {
+                    commandLists.Start();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_EMERGENCY_STOP:
+                {
+                    commandLists.EmergencyStop();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_STAND_UP:
+                {
+                    commandLists.HomeUp();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_SIT_DOWN:
+                {
+                    commandLists.HomeDown();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_TROT_STOP:
+                {
+                    commandLists.TrotStop();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_TROT_SLOW:
+                {
+                    commandLists.TrotSlow();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_RESTART:
+                {
+                    commandLists.Restart();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_ARM_HOME:
+                {
+                    commandLists.ArmHome();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_ARM_MOVE:
+                {
+                    double armGoalPosition[3];
+                    double armGoalEulerAngle[3];
+
+                    armGoalPosition[0] = sharedMemory->rosCommand.desiredEndEffectorPosition[0];
+                    armGoalPosition[1] = sharedMemory->rosCommand.desiredEndEffectorPosition[1];
+                    armGoalPosition[2] = sharedMemory->rosCommand.desiredEndEffectorPosition[2];
+                    armGoalEulerAngle[0] = sharedMemory->rosCommand.desiredEndEffectorEulerAngle[0];
+                    armGoalEulerAngle[1] = sharedMemory->rosCommand.desiredEndEffectorEulerAngle[1];
+                    armGoalEulerAngle[2] = sharedMemory->rosCommand.desiredEndEffectorEulerAngle[2];
+                    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_ARM_TELE_ON:
+                {
+                    commandLists.ArmTeleOn();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_ARM_TELE_OFF:
+                {
+                    commandLists.ArmTeleOff();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_ARM_GRP_OPEN:
+                {
+                    commandLists.ArmGripperOpen();
+                    break;
+                }
+                case CommandLists::ROS_COMMAND::ROS_CMD_ARM_GRP_CLOSE:
+                {
+                    commandLists.ArmGripperClose();
+                    break;
+                }
+                default:
+                {
+                    std::perror("[MAIN] invalid ROS command.");
+                    break;
+                }
+            }
+        }
+
+        switch (sharedMemory->FSMState)
+        {
+            case FSM::FSM_TROT_SLOW:
+            {
+                double refBodyVelocity[3];
+                refBodyVelocity[0] = sharedMemory->rosCommand.userLinVel[0]; // reference x-axis velocity in body frame. [m/s]
+                refBodyVelocity[1] = sharedMemory->rosCommand.userLinVel[1]; // reference y-axis velocity in body frame. [m/s]
+                refBodyVelocity[2] = sharedMemory->rosCommand.userAngVel[2]; // reference yaw velocity. [rad/s]
+                commandLists.SetBodyVelocity(refBodyVelocity);
+                break;
+            }
+            default:
+            {
+                double refBodyVelocity[3];
+                refBodyVelocity[0] = 0.0; // reference x-axis velocity in body frame. [m/s]
+                refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
+                refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
+                commandLists.SetBodyVelocity(refBodyVelocity);
+                break;
+            }
+        }
+
+        switch (sharedMemory->armFSMState)
+        {
+            case ARM_FSM::ARM_TELE:
+            {
+                double armLinearVelocityRef[3];
+                double armAngularVelocityRef[3];
+                armLinearVelocityRef[0] = sharedMemory->rosCommand.desiredTeleOperationLinearVelocity[0]; // reference x-axis velocity in arm-base frame. [m/s]
+                armLinearVelocityRef[1] = sharedMemory->rosCommand.desiredTeleOperationLinearVelocity[1]; // reference y-axis velocity in arm-base frame. [m/s]
+                armLinearVelocityRef[2] = sharedMemory->rosCommand.desiredTeleOperationLinearVelocity[2]; // reference z-axis velocity in arm-base frame. [m/s]
+                armAngularVelocityRef[0] = sharedMemory->rosCommand.desiredTeleOperationAngularVelocity[0]; // reference x-axis angular velocity in arm-base frame. [rad/s]
+                armAngularVelocityRef[1] = sharedMemory->rosCommand.desiredTeleOperationAngularVelocity[1]; // reference y-axis angular velocity in arm-base frame. [rad/s]
+                armAngularVelocityRef[2] = sharedMemory->rosCommand.desiredTeleOperationAngularVelocity[2]; // reference z-axis angular velocity in arm-base frame. [rad/s]
+                commandLists.SetArmTeleoperationVelocity(armLinearVelocityRef,armAngularVelocityRef);
+                break;
+            }
+            default:
+            {
+                double armLinearVelocityRef[3];
+                double armAngularVelocityRef[3];
+                armLinearVelocityRef[0] = 0.0; // reference x-axis velocity in arm-base frame. [m/s]
+                armLinearVelocityRef[1] = 0.0; // reference y-axis velocity in arm-base frame. [m/s]
+                armLinearVelocityRef[2] = 0.0; // reference z-axis velocity in arm-base frame. [m/s]
+                armAngularVelocityRef[0] = 0.0; // reference x-axis angular velocity in arm-base frame. [rad/s]
+                armAngularVelocityRef[1] = 0.0; // reference y-axis angular velocity in arm-base frame. [rad/s]
+                armAngularVelocityRef[2] = 0.0; // reference z-axis angular velocity in arm-base frame. [rad/s]
+                commandLists.SetArmTeleoperationVelocity(armLinearVelocityRef,armAngularVelocityRef);
+                break;
+            }
+        }
+
+        prevRosCMD = incomingRosCMD;
+        usleep(dT * 1e6);
     }
-    refBodyVelocity[0] = 0.0; // reference x-axis velocity in body frame. [m/s]
-    refBodyVelocity[1] = 0.1; // reference y-axis velocity in body frame. [m/s]
-    refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
-    commandLists.SetBodyVelocity(refBodyVelocity);
-    sleep(3);
 
-    /// CMD: Trot stop
-    commandLists.TrotStop();
-
-    /// CMD: Arm goal position control
-    double armGoalPosition[3];
-    double armGoalEulerAngle[3];
-
-    armGoalPosition[0] = 0.50;
-    armGoalPosition[1] = 0.10;
-    armGoalPosition[2] = 0.45;
-    armGoalEulerAngle[0] = 0.0;
-    armGoalEulerAngle[1] = 0.0;
-    armGoalEulerAngle[2] = 0.0;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
+    printBaseState();
     printEndEffectorState();
-
-    armGoalPosition[1] = -0.20;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-    commandLists.ArmHome();
-    armGoalPosition[0] = 0.45;
-    armGoalPosition[1] = 0.0;
-    armGoalPosition[2] = 0.35;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    armGoalEulerAngle[2] = 30 * 3.141592 / 180;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    armGoalEulerAngle[2] = -30 * 3.141592 / 180;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    armGoalEulerAngle[1] = 30.0 * 3.141592 / 180;;
-    armGoalEulerAngle[2] = 0.0;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    armGoalEulerAngle[1] = -30.0 * 3.141592 / 180;;
-    commandLists.ArmMove(armGoalPosition, armGoalEulerAngle);
-    printEndEffectorState();
-
-    /// CMD: Arm gripper open
-    commandLists.ArmGripperOpen();
-
-    /// CMD: Arm gripper close
-    commandLists.ArmGripperClose();
-
-    commandLists.ArmHome();
-
-    /// CMD: Home down
-    commandLists.HomeDown();
-
-    /// CMD: Emergency stop (Controller stop)
-    commandLists.EmergencyStop();
-
-    /// CMD: Restart the controller
-    /// It will shut down the controller in the control PC and restart the controller.
-    commandLists.Restart();
 }
