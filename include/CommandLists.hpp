@@ -30,8 +30,6 @@ public:
     void SetBodyVelocity(double* refVel);
     void SetArmTeleoperationVelocity(double* armLinearVelocityRef, double* armAngularVelocityRef);
 
-private:
-    SharedMemory* sharedMemory;
     enum COMMAND
     {
         CMD_NO_INPUT,
@@ -71,6 +69,10 @@ private:
         ROS_CMD_ARM_GRP_OPEN,
         ROS_CMD_ARM_GRP_CLOSE
     };
+
+private:
+    SharedMemory* sharedMemory;
+
 };
 
 
