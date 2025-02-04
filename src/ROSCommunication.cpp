@@ -14,8 +14,9 @@ ROSCommunication::ROSCommunication()
     publisher_canine_states = this->create_publisher<canine_msgs::msg::CANINEState>("canine_states", 10);
 
     timer_canine_states = this->create_wall_timer(
-                std::chrono::milliseconds(50),
+                std::chrono::milliseconds(20),
                 std::bind(&ROSCommunication::timer_callback, this));
+    std::cout << "[ROS] Generated C++ ROS Communication thread." << std::endl;
 }
 
 void ROSCommunication::timer_callback()
@@ -41,15 +42,15 @@ void ROSCommunication::package_canine_state_msg(canine_msgs::msg::CANINEState& m
     msg.motor_desired_position.resize(12);
     msg.motor_desired_velocity.resize(12);
     msg.motor_desired_torque.resize(12);
-    msg.arm_motor_error_status.resize(12);
-    msg.arm_motor_temp.resize(12);
-    msg.arm_motor_voltage.resize(12);
-    msg.arm_motor_position.resize(12);
-    msg.arm_motor_velocity.resize(12);
-    msg.arm_motor_torque.resize(12);
-    msg.arm_motor_desired_position.resize(12);
-    msg.arm_motor_desired_velocity.resize(12);
-    msg.arm_motor_desired_torque.resize(12);
+    msg.arm_motor_error_status.resize(7);
+    msg.arm_motor_temp.resize(7);
+    msg.arm_motor_voltage.resize(7);
+    msg.arm_motor_position.resize(7);
+    msg.arm_motor_velocity.resize(7);
+    msg.arm_motor_torque.resize(7);
+    msg.arm_motor_desired_position.resize(7);
+    msg.arm_motor_desired_velocity.resize(7);
+    msg.arm_motor_desired_torque.resize(7);
 
     msg.local_time = sharedMemory->localTime;
     msg.fsm_state = sharedMemory->FSMState;
@@ -90,10 +91,10 @@ void ROSCommunication::package_canine_state_msg(canine_msgs::msg::CANINEState& m
     msg.global_base_euler_angle.x = sharedMemory->globalBaseEulerAngle.x();
     msg.global_base_euler_angle.y = sharedMemory->globalBaseEulerAngle.y();
     msg.global_base_euler_angle.z = sharedMemory->globalBaseEulerAngle.z();
-    msg.global_base_quaternion.x = sharedMemory->globalBaseQuaternion.x();
-    msg.global_base_quaternion.y = sharedMemory->globalBaseQuaternion.y();
-    msg.global_base_quaternion.z = sharedMemory->globalBaseQuaternion.z();
-    msg.global_base_quaternion.w = sharedMemory->globalBaseQuaternion.w();
+    msg.global_base_quaternion.x = sharedMemory->globalBaseQuaternion[1];
+    msg.global_base_quaternion.y = sharedMemory->globalBaseQuaternion[2];
+    msg.global_base_quaternion.z = sharedMemory->globalBaseQuaternion[3];
+    msg.global_base_quaternion.w = sharedMemory->globalBaseQuaternion[0];
     msg.global_base_angular_velocity.x = sharedMemory->globalBaseAngularVelocity.x();
     msg.global_base_angular_velocity.y = sharedMemory->globalBaseAngularVelocity.y();
     msg.global_base_angular_velocity.z = sharedMemory->globalBaseAngularVelocity.z();
@@ -107,10 +108,10 @@ void ROSCommunication::package_canine_state_msg(canine_msgs::msg::CANINEState& m
     msg.global_base_desired_euler_angle.x = sharedMemory->globalBaseDesiredEulerAngle.x();
     msg.global_base_desired_euler_angle.y = sharedMemory->globalBaseDesiredEulerAngle.y();
     msg.global_base_desired_euler_angle.z = sharedMemory->globalBaseDesiredEulerAngle.z();
-    msg.global_base_desired_quaternion.x = sharedMemory->globalBaseDesiredQuaternion.x();
-    msg.global_base_desired_quaternion.y = sharedMemory->globalBaseDesiredQuaternion.y();
-    msg.global_base_desired_quaternion.z = sharedMemory->globalBaseDesiredQuaternion.z();
-    msg.global_base_desired_quaternion.w = sharedMemory->globalBaseDesiredQuaternion.w();
+    msg.global_base_desired_quaternion.x = sharedMemory->globalBaseDesiredQuaternion[1];
+    msg.global_base_desired_quaternion.y = sharedMemory->globalBaseDesiredQuaternion[2];
+    msg.global_base_desired_quaternion.z = sharedMemory->globalBaseDesiredQuaternion[3];
+    msg.global_base_desired_quaternion.w = sharedMemory->globalBaseDesiredQuaternion[0];
     msg.global_base_desired_angular_velocity.x = sharedMemory->globalBaseDesiredAngularVelocity.x();
     msg.global_base_desired_angular_velocity.y = sharedMemory->globalBaseDesiredAngularVelocity.y();
     msg.global_base_desired_angular_velocity.z = sharedMemory->globalBaseDesiredAngularVelocity.z();
