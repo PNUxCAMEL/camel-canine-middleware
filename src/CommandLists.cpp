@@ -17,35 +17,35 @@ void CommandLists::NoCommand()
 void CommandLists::Start()
 {
     sharedMemory->udp.joyCommand = CMD_START;
-    printf("[CMD] : Robot Start\n");
+    printf("(%02d:%02d:%02d) [CMD] : Start Controller\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(1);
 }
 
 void CommandLists::Restart()
 {
     sharedMemory->udp.joyCommand = CMD_RESTART;
-    printf("[CMD] : Recovery\n");
+    printf("(%02d:%02d:%02d) [CMD] : Restart Controller\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(4);
 }
 
 void CommandLists::HomeUp()
 {
     sharedMemory->udp.joyCommand = CMD_STAND_UP;
-    printf("[CMD] : Home Up\n");
+    printf("(%02d:%02d:%02d) [CMD] : Home Up\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(4);
 }
 
 void CommandLists::HomeDown()
 {
     sharedMemory->udp.joyCommand = CMD_SIT_DOWN;
-    printf("[CMD] : Home Down\n");
-    sleep(5);
+    printf("(%02d:%02d:%02d) [CMD] : Home Down\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    sleep(4);
 }
 
 void CommandLists::TrotSlow()
 {
     sharedMemory->udp.joyCommand = CMD_TROT_SLOW;
-    printf("[CMD] : Trot Slow\n");
+    printf("(%02d:%02d:%02d) [CMD] : Trot Slow\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(2);
 }
 
@@ -59,14 +59,14 @@ void CommandLists::TrotStop()
     sleep(1);
 
     sharedMemory->udp.joyCommand = CMD_TROT_STOP;
-    printf("[CMD] : Trot Stop\n");
+    printf("(%02d:%02d:%02d) [CMD] : Trot Stop\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(1);
 }
 
 void CommandLists::EmergencyStop()
 {
     sharedMemory->udp.joyCommand = CMD_EMERGENCY_STOP;
-    printf("[CMD] : Emergency Stop\n");
+    printf("(%02d:%02d:%02d) [CMD] : Emergency Stop\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(1);
 }
 
