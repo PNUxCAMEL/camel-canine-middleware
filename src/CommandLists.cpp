@@ -39,7 +39,7 @@ void CommandLists::HomeDown()
 {
     sharedMemory->udp.joyCommand = CMD_SIT_DOWN;
     printf("[CMD] : Home Down\n");
-    sleep(7);
+    sleep(5);
 }
 
 void CommandLists::TrotSlow()
@@ -56,7 +56,7 @@ void CommandLists::TrotStop()
     refBodyVelocity[1] = 0.0; // reference y-axis velocity in body frame. [m/s]
     refBodyVelocity[2] = 0.0; // reference yaw velocity. [rad/s]
     SetBodyVelocity(refBodyVelocity);
-    sleep(2);
+    sleep(1);
 
     sharedMemory->udp.joyCommand = CMD_TROT_STOP;
     printf("[CMD] : Trot Stop\n");
@@ -67,7 +67,7 @@ void CommandLists::EmergencyStop()
 {
     sharedMemory->udp.joyCommand = CMD_EMERGENCY_STOP;
     printf("[CMD] : Emergency Stop\n");
-    sleep(2);
+    sleep(1);
 }
 
 void CommandLists::SetBodyVelocity(double* refVel)
