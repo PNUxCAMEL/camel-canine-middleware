@@ -154,19 +154,14 @@ class ROSCommunicatoin(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    print("test")
     node = ROSCommunicatoin()
-    print("test")
     try:
         rclpy.spin(node)
-        print("test")
     except KeyboardInterrupt:
         pass
     finally:
         node.destroy_node()
         rclpy.shutdown()
-    print("test2")
 
 if __name__ == '__main__':
     main()
-    print("test3")
