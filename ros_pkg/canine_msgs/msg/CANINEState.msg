@@ -21,6 +21,10 @@ float64[] arm_motor_torque
 float64[] arm_motor_desired_position
 float64[] arm_motor_desired_velocity
 float64[] arm_motor_desired_torque
+float64[] arm_end_effector_position
+float64[] arm_end_effector_euler_angle
+float64[] arm_end_effector_velocity
+float64[] arm_end_effector_angular_velocity
 geometry_msgs/Vector3 global_base_position
 geometry_msgs/Vector3 global_base_velocity
 geometry_msgs/Vector3 global_base_euler_angle

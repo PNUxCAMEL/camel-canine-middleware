@@ -51,6 +51,10 @@ void ROSCommunication::package_canine_state_msg(canine_msgs::msg::CANINEState& m
     msg.arm_motor_desired_position.resize(7);
     msg.arm_motor_desired_velocity.resize(7);
     msg.arm_motor_desired_torque.resize(7);
+    msg.arm_end_effector_position.resize(3);
+    msg.arm_end_effector_euler_angle.resize(3);
+    msg.arm_end_effector_velocity.resize(3);
+    msg.arm_end_effector_angular_velocity.resize(3);
 
     msg.local_time = sharedMemory->localTime;
     msg.fsm_state = sharedMemory->FSMState;
@@ -80,6 +84,14 @@ void ROSCommunication::package_canine_state_msg(canine_msgs::msg::CANINEState& m
         msg.arm_motor_desired_position[idx] = sharedMemory->armMotorDesiredPosition[idx];
         msg.arm_motor_desired_velocity[idx] = sharedMemory->armMotorDesiredVelocity[idx];
         msg.arm_motor_desired_torque[idx] = sharedMemory->armMotorDesiredTorque[idx];
+    }
+
+    for (size_t idx = 0; idx < 3; idx++)
+    {
+        msg.arm_end_effector_position[idx] = sharedMemory->currentEndEffectorPosition[idx];
+        msg.arm_end_effector_euler_angle[idx] = sharedMemory->currentEndEffectorEulerAngle[idx];
+        msg.arm_end_effector_velocity[idx] = sharedMemory->currentEndEffectorVelocity[idx];
+        msg.arm_end_effector_angular_velocity[idx] = sharedMemory->currentEndEffectorAngularVelocity[idx];
     }
 
     msg.global_base_position.x = sharedMemory->globalBasePosition.x();
