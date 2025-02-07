@@ -17,6 +17,6 @@ fi
 
 cd "${PARENT_DIR}/ros_pkg"
 
-colcon build --packages-select canine_msgs
+colcon build --packages-select canine_msgs sllidar_ros2
 
 echo "Build Finish"

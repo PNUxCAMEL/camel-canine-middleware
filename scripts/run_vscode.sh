@@ -23,7 +23,7 @@ if [ -f "$SCRIPT_SETUP" ]; then
     source "$SCRIPT_SETUP"
 else
     echo "Project was not built. Building project..."
-    colcon build --packages-select rbq_msgs gd_ifc_pkg
+    colcon build --packages-select canine_msgs sllidar_ros2
     if [ $? -ne 0 ]; then
         echo "Error: colcon build failed." >&2
         exit 1
