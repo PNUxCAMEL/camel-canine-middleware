@@ -19,7 +19,6 @@ CommandLists commandLists;
 void* sendRobotCommand_udp(void* arg);
 void* receiveRobotStatus_tcp(void* arg);
 void* highController(void* arg);
-void* KeyListener(void* arg);
 
 void printBaseState()
 {
@@ -47,21 +46,28 @@ void printEndEffectorState()
                 << "\t\t\t\t\tyaw:   " << sharedMemory->currentEndEffectorEulerAngle[2] * 180.0 / 3.141592 << "deg\n"<< std::endl;
 }
 
+void shutdownHandler(int signum)
+{
+    printf(GREEN "(%02d:%02d:%02d) [MAIN] : Shut down the canine-middleware\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    commandLists.EmergencyStop();
+    rclcpp::shutdown();
+    printf(YELLOW "[MAIN] : Exiting program.\n" RESET);
+    exit(signum);
+}
+
 int main(int argc, char** argv)
 {
     pthread_t UDPthread;
     pthread_t TCPthread;
     pthread_t HighControlThread;
-    pthread_t KeyListenerThread;
 
     generateNrtThread(HighControlThread, highController, "highController", 5, NULL);
     generateNrtThread(UDPthread, sendRobotCommand_udp, "UDP_send", 6, NULL);
     generateNrtThread(TCPthread, receiveRobotStatus_tcp, "TCP_receive", 7, NULL);
-    generateNrtThread(KeyListenerThread, KeyListener, "key_board", 4, NULL);
 
+    signal(SIGINT, shutdownHandler);
     rclcpp::init(argc, argv);
     rclcpp::spin(std::make_shared<ROSCommunication>());
-    rclcpp::shutdown();
 
     while (true)
     {
@@ -73,14 +79,14 @@ int main(int argc, char** argv)
 
 void* sendRobotCommand_udp(void* arg)
 {
-    std::cout << "[MAIN] Generated UDP Thread." <<std::endl;
+    std::cout <<YELLOW "[MAIN] Generated UDP Thread." RESET<<std::endl;
     UDPCommunication udpSender;
     udpSender.SendData();
 }
 
 void* receiveRobotStatus_tcp(void* arg)
 {
-    std::cout << "[MAIN] Generated TCP Thread." <<std::endl;
+    std::cout <<YELLOW  "[MAIN] Generated TCP Thread." RESET<<std::endl;
     try
     {
         boost::asio::io_context io_context;
@@ -93,33 +99,11 @@ void* receiveRobotStatus_tcp(void* arg)
     }
 }
 
-void* KeyListener(void* arg) {
-    struct pollfd fds[1];
-    fds[0].fd = STDIN_FILENO; // 표준 입력 (키보드)
-    fds[0].events = POLLIN;   // 읽기 이벤트 감지
-
-    while (true)
-    {
-        char ch;
-        read(STDIN_FILENO, &ch, 1); // 키 입력 읽기
-        if (ch == 'e')
-        {
-            std::cerr << "[MAIN] 'e' key pressed! e-stop" << std::endl;
-            commandLists.EmergencyStop();
-            sleep(2);
-            std::cerr << "[MAIN] Exit canine-middleware" << std::endl;
-            exit(0);
-        }
-        tcflush(STDIN_FILENO, TCIFLUSH);
-        usleep(5000); // CPU 사용량을 줄이기 위해 잠시 대기
-    }
-}
-
 void* highController(void* arg)
 {
-    double dT = 0.05; // 20Hz Real-time thread
+    double dT = 0.02; // 50Hz Real-time thread
     const long threadPeriod = long(dT * 1e6);
-    std::cout << "[MAIN] Generated Real-Time High Controller Thread : " << 1 / double(threadPeriod) * 1e6 << " Hz" <<std::endl;
+    std::cout <<YELLOW "[MAIN] Generated High Controller Thread : " RESET<< 1 / double(threadPeriod) * 1e6 << " Hz" <<std::endl;
     int prevRosCMD = -1;
     while (true)
     {
