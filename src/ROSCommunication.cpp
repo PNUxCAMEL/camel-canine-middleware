@@ -16,7 +16,7 @@ ROSCommunication::ROSCommunication()
     timer_canine_states = this->create_wall_timer(
                 std::chrono::milliseconds(20),
                 std::bind(&ROSCommunication::timer_callback, this));
-    std::cout << "[ROS] Generated C++ ROS Communication thread." << std::endl;
+    std::cout <<YELLOW "[MAIN] Generated C++ ROS Communication thread." RESET<< std::endl;
 }
 
 void ROSCommunication::timer_callback()

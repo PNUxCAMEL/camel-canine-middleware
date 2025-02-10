@@ -17,35 +17,35 @@ void CommandLists::NoCommand()
 void CommandLists::Start()
 {
     sharedMemory->udp.joyCommand = CMD_START;
-    printf("(%02d:%02d:%02d) [CMD] : Start Controller\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Start Controller\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(1);
 }
 
 void CommandLists::Restart()
 {
     sharedMemory->udp.joyCommand = CMD_RESTART;
-    printf("(%02d:%02d:%02d) [CMD] : Restart Controller\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Restart Controller\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(4);
 }
 
 void CommandLists::HomeUp()
 {
     sharedMemory->udp.joyCommand = CMD_STAND_UP;
-    printf("(%02d:%02d:%02d) [CMD] : Home Up\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Home Up\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(4);
 }
 
 void CommandLists::HomeDown()
 {
     sharedMemory->udp.joyCommand = CMD_SIT_DOWN;
-    printf("(%02d:%02d:%02d) [CMD] : Home Down\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Home Down\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(4);
 }
 
 void CommandLists::TrotSlow()
 {
     sharedMemory->udp.joyCommand = CMD_TROT_SLOW;
-    printf("(%02d:%02d:%02d) [CMD] : Trot Slow\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Trot Slow\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(2);
 }
 
@@ -59,14 +59,14 @@ void CommandLists::TrotStop()
     sleep(1);
 
     sharedMemory->udp.joyCommand = CMD_TROT_STOP;
-    printf("(%02d:%02d:%02d) [CMD] : Trot Stop\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Trot Stop\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(1);
 }
 
 void CommandLists::EmergencyStop()
 {
     sharedMemory->udp.joyCommand = CMD_EMERGENCY_STOP;
-    printf("(%02d:%02d:%02d) [CMD] : Emergency Stop\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Emergency Stop\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(1);
 }
 
@@ -110,7 +110,7 @@ void CommandLists::SetBodyVelocity(double* refVel)
 void CommandLists::ArmHome()
 {
     sharedMemory->udp.joyCommand = CMD_ARM_HOME;
-    printf("(%02d:%02d:%02d) [CMD] : Arm Home\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Arm Home\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(3);
 }
 
@@ -142,7 +142,17 @@ void CommandLists::ArmMove(double* goalPosition, double* goalEulerAngle)
     sharedMemory->udp.desiredEndEffectorEulerAngle[2] = fmin(fmax(goalEulerAngle[2], goalEulerAngleLimit[2][0]), goalEulerAngleLimit[2][1]);
 
     sharedMemory->udp.joyCommand = CMD_ARM_MOVE;
-    printf("(%02d:%02d:%02d) [CMD] : Arm Move\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Arm Move\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf("\t End effector goal position in arm base frame:\n");
+    printf("\t\tx: %f m\n",sharedMemory->currentEndEffectorPosition[0]);
+    printf("\t\ty: %f m\n",sharedMemory->currentEndEffectorPosition[1]);
+    printf("\t\tz: %f m\n",sharedMemory->currentEndEffectorPosition[2]);
+    printf("\t End effector goal orientation in arm base frame:\n");
+    printf("\t\troll:  %f deg\n", sharedMemory->currentEndEffectorEulerAngle[0] * 180.0 / 3.141592);
+    printf("\t\tpitch: %f deg\n", sharedMemory->currentEndEffectorEulerAngle[1] * 180.0 / 3.141592);
+    printf("\t\tyaw:   %f deg\n" RESET, sharedMemory->currentEndEffectorEulerAngle[2] * 180.0 / 3.141592);
+
+
     sleep(3);
 }
 
@@ -178,7 +188,7 @@ void CommandLists::SetArmTeleoperationVelocity(double* armLinearVelocityRef, dou
 void CommandLists::ArmTeleOn()
 {
     sharedMemory->udp.joyCommand = CMD_ARM_TELE_ON;
-    printf("(%02d:%02d:%02d) [CMD] : Arm Teleoperation On\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Arm Teleoperation On\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(1);
 }
 
@@ -194,20 +204,20 @@ void CommandLists::ArmTeleOff()
     armAngularVelocityRef[2] = 0.0; // reference z-axis angular velocity in arm-base frame. [rad/s]
     SetArmTeleoperationVelocity(armLinearVelocityRef,armAngularVelocityRef);
     sharedMemory->udp.joyCommand = CMD_ARM_TELE_OFF;
-    printf("(%02d:%02d:%02d) [CMD] : Arm Teleoperation Off\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Arm Teleoperation Off\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(1);
 }
 
 void CommandLists::ArmGripperClose()
 {
     sharedMemory->udp.joyCommand = CMD_ARM_GRP_CLOSE;
-    printf("(%02d:%02d:%02d) [CMD] : Arm Gripper Close\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Arm Gripper Close\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(2);
 }
 
 void CommandLists::ArmGripperOpen()
 {
     sharedMemory->udp.joyCommand = CMD_ARM_GRP_OPEN;
-    printf("(%02d:%02d:%02d) [CMD] : Arm Gripper Open\n",(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
+    printf(GREEN "(%02d:%02d:%02d) [CMD] : Arm Gripper Open\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     sleep(2);
 }

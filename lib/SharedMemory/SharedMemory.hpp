@@ -5,9 +5,16 @@
 #ifndef RBCANINE_SHAREDMEMORY_HPP
 #define RBCANINE_SHAREDMEMORY_HPP
 
+#include <cstdio>
 #include <Eigen/Dense>
 #include "custom_struct.hpp"
 #include "EnumClasses.hpp"
+
+#define YELLOW "\033[1;33m"
+#define GREEN "\033[1;32m"
+#define RED "\033[1;31m"
+#define RESET  "\033[0m"
+
 #define MPC_HORIZON         5
 #define R2D                 57.2957802
 
