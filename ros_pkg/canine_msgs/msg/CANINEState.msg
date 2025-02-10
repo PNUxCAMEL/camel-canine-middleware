@@ -1,5 +1,6 @@
 float64 local_time
 int32 fsm_state
+int32 arm_fsm_state
 int32[] gait_table
 bool[] contact_state
 bool motor_status

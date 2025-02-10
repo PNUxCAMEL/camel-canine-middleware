@@ -1,10 +1,15 @@
 import numpy as np
 from canine_msgs.msg import CANINECommand
+from sensor_msgs.msg import LaserScan
+
+np.set_printoptions(precision=3)
 
 class SharedMemoryManager:
     def __init__(self):
+        # Canine states information
         self.local_time = 0.0
         self.fsm_state = -1
+        self.arm_fsm_state = -1
         self.gait_table = np.zeros(20)
         self.contact_state = np.zeros(4)
         self.motor_status = -1
@@ -44,6 +49,7 @@ class SharedMemoryManager:
         self.body_base_desired_velocity = np.zeros(3)
         self.body_base_angular_velocity = np.zeros(3)
         self.body_base_desired_angular_velocity = np.zeros(3)
+        self.middleware_connected = False
 
         self.cmd = CANINECommand()
         self.cmd.command = 0
@@ -54,3 +60,5 @@ class SharedMemoryManager:
         self.cmd.reference_arm_tele_operation_linear_vel = [0.0, 0.0, 0.0]
         self.cmd.reference_arm_tele_operation_angular_vel = [0.0, 0.0, 0.0]
 
+        # Lidar information
+        self.lidar_msg = LaserScan()

@@ -58,6 +58,7 @@ void ROSCommunication::package_canine_state_msg(canine_msgs::msg::CANINEState& m
 
     msg.local_time = sharedMemory->localTime;
     msg.fsm_state = sharedMemory->FSMState;
+    msg.arm_fsm_state = sharedMemory->armFSMState;
     std::copy_n(sharedMemory->gaitTable, 20, msg.gait_table.data());
     std::copy_n(sharedMemory->contactState, 4, msg.contact_state.begin());
     msg.motor_status = sharedMemory->motorStatus;
