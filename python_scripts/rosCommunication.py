@@ -1,7 +1,9 @@
 import numpy as np
 from rclpy.node import Node
 from canine_msgs.msg import CANINECommand,CANINEState
-from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import LaserScan, Image
+import cv2
+from cv_bridge import CvBridge
 
 class ROSCommunication(Node):
     def __init__(self,SharedMemoryManager):
@@ -26,6 +28,22 @@ class ROSCommunication(Node):
             ,10
         )
 
+        self.create_subscription(
+            Image, 
+            '/zed/zed_node/rgb_raw/image_raw_color', 
+            self.rgb_callback, 
+            10
+        )
+
+        self.create_subscription(
+            Image, 
+            '/zed/zed_node/depth/depth_registered', 
+            self.depth_callback, 
+            10
+        )
+
+        
+
         self.timer_canine_command = self.create_timer(0.02, self.timer_callback)
 
         self.subscription_canine_states
@@ -36,6 +54,10 @@ class ROSCommunication(Node):
         self.shm = SharedMemoryManager
         self.cnt = 0
         self.prevCMD = -1
+
+        self.bridge = CvBridge()
+        self.is_save_rgb_image = True
+        self.is_save_depth_image = True
 
     def topic_callback_canine_states(self, msg):
         self.shm.middleware_connected = True
@@ -129,7 +151,25 @@ class ROSCommunication(Node):
         # print("theta: ",theta,"distance: ",distance)
 
 
+    def rgb_callback(self, msg):
+        self.shm.rgb_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        if self.is_save_rgb_image:
+            cv2.imwrite('../images/rgb/rgb_image.png', self.shm.rgb_image)  # Save RGB image
+            self.get_logger().info("Saved RGB Image")
+            self.is_save_rgb_image = False
 
+    def depth_callback(self, msg):
+        self.shm.depth_image = self.bridge.imgmsg_to_cv2(msg, '32FC1')
+        if self.is_save_depth_image:
+            np.save('../images/depth/depth_image_raw.npy', self.shm.depth_image)  # Save Raw depth image as .npy
+
+            depth_image_2 = np.nan_to_num(self.shm.depth_image, nan=0.0, posinf=255.0, neginf=0.0)
+            depth_normalized = cv2.normalize(depth_image_2, None, 0, 255, cv2.NORM_MINMAX)
+            depth_normalized = depth_normalized.astype("uint8")  # 변환 오류 방지
+            cv2.imwrite('../images/depth/depth_image_normalized.png', depth_normalized)
+            
+            self.get_logger().info("Saved Depth Image")
+            self.is_save_depth_image = False
 
 
     def timer_callback(self):

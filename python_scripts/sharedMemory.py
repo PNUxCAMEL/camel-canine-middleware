@@ -62,3 +62,7 @@ class SharedMemoryManager:
 
         # Lidar information
         self.lidar_msg = LaserScan()
+
+        # Camera information
+        self.rgb_image = None
+        self.depth_image = None

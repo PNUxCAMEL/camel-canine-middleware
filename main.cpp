@@ -50,6 +50,7 @@ void shutdownHandler(int signum)
 {
     printf(GREEN "(%02d:%02d:%02d) [MAIN] : Shut down the canine-middleware\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
     commandLists.EmergencyStop();
+    commandLists.Restart();
     rclcpp::shutdown();
     printf(YELLOW "[MAIN] : Exiting program.\n" RESET);
     exit(signum);

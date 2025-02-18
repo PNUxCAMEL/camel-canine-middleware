@@ -38,7 +38,7 @@ def userCommandThread(args=None):
     time.sleep(3)
 
     shm.cmd.reference_base_velocity = [0.1, 0.0]  
-    time.sleep(1)
+    time.sleep(3)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] FSM:\t",CanineFSM(shm.fsm_state),Style.RESET_ALL)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] body vel:\t",shm.body_base_velocity,Style.RESET_ALL)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] base quat:\t",shm.global_base_quaternion,Style.RESET_ALL)
@@ -89,6 +89,12 @@ def userCommandThread(args=None):
     time.sleep(4)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] arm pos:\t",shm.arm_end_effector_position,Style.RESET_ALL)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] arm euler:\t",shm.arm_end_effector_euler_angle,Style.RESET_ALL)
+
+    shm.cmd.command = Command.ARM_GRP_OPEN.value
+    time.sleep(2)
+
+    shm.cmd.command = Command.ARM_GRP_CLOSE.value
+    time.sleep(2)
 
     shm.cmd.command = Command.HOME_DOWN.value
     time.sleep(5)
