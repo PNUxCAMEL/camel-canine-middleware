@@ -25,7 +25,7 @@ void CommandLists::Restart()
 {
     sharedMemory->udp.joyCommand = CMD_RESTART;
     printf(GREEN "(%02d:%02d:%02d) [CMD] : Restart Controller\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
-    sleep(4);
+    sleep(1);
 }
 
 void CommandLists::HomeUp()
@@ -212,12 +212,12 @@ void CommandLists::ArmGripperClose()
 {
     sharedMemory->udp.joyCommand = CMD_ARM_GRP_CLOSE;
     printf(GREEN "(%02d:%02d:%02d) [CMD] : Arm Gripper Close\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
-    sleep(2);
+    sleep(1);
 }
 
 void CommandLists::ArmGripperOpen()
 {
     sharedMemory->udp.joyCommand = CMD_ARM_GRP_OPEN;
     printf(GREEN "(%02d:%02d:%02d) [CMD] : Arm Gripper Open\n" RESET,(int)(sharedMemory->localTime/3600),((int)sharedMemory->localTime%3600)/60,(int)sharedMemory->localTime%60);
-    sleep(2);
+    sleep(1);
 }
